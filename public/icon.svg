@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+    <linearGradient id="pillGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#10b981" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+
+  <!-- Outer subtle shield glow border -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="none" stroke="#10b981" stroke-width="4" stroke-opacity="0.2" />
+
+  <!-- Shield Shape Background -->
+  <path d="M 256 90 L 370 140 C 370 260 256 360 256 360 C 256 360 142 260 142 140 Z" fill="#0f172a" stroke="url(#shieldGrad)" stroke-width="8" />
+
+  <!-- Medical Cross and Pill Composition -->
+  <!-- Diagonal Pill -->
+  <g transform="translate(256, 235) rotate(-45) translate(-256, -235)" filter="url(#glow)">
+    <!-- Pill Left Half (Emerald Green) -->
+    <path d="M 176 195 A 40 40 0 0 0 176 275 L 256 275 L 256 195 Z" fill="url(#pillGrad)" />
+    <!-- Pill Right Half (White / Light Slate) -->
+    <path d="M 256 195 L 336 195 A 40 40 0 0 1 336 275 L 256 275 Z" fill="#ffffff" />
+    <!-- Pill Center Divider -->
+    <line x1="256" y1="190" x2="256" y2="280" stroke="#047857" stroke-width="4" />
+    
+    <!-- Pill Inner Sheen -->
+    <ellipse cx="205" cy="215" rx="16" ry="6" fill="#ffffff" opacity="0.4" />
+  </g>
+
+  <!-- Medical Cross Badge Center Top -->
+  <g transform="translate(256, 395)">
+    <!-- Small Health Heart / Pulse circle -->
+    <circle cx="0" cy="0" r="32" fill="#10b981" />
+    <path d="M -16 0 L -8 0 L -4 -10 L 4 12 L 8 -4 L 12 2 L 16 0" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

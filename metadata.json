@@ -1,0 +1,7 @@
+{
+  "name": "MediControl - Control de Toma de Medicamentos",
+  "description": "Sistema completo para control de toma de medicamentos, pacientes múltiples, recetas, horarios programados, registro de tomas con anti-duplicidad, alertas de atraso y reportes de adherencia.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

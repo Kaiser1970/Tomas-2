@@ -1,0 +1,235 @@
+export const PROMPT_FINAL_TEXT = `================================================================================
+PROMPT FINAL DE ESPECIFICACIÓN Y DESARROLLO DEL SISTEMA MEDICONTROL
+================================================================================
+Sistema Integral de Gestión de Medicamentos, Pacientes Múltiples, Recetas,
+Horarios Programados, Control de Duración de Tratamientos y Prevención de Omisiones
+================================================================================
+
+ROL Y PROPÓSITO:
+Actúa como un Desarrollador Full-Stack Senior y Diseñador de Interfaces Médicas UX/UI.
+Crea una aplicación web moderna, intuitiva, accesible y de grado clínico en React con
+TypeScript y Tailwind CSS llamada "MediControl - Control de Toma de Medicamentos".
+
+La aplicación está orientada a cuidadores familiares, pacientes crónicos y adultos mayores
+para garantizar el estricto apego al tratamiento farmacológico, previniendo intoxicaciones
+por tomas duplicadas, omisiones de dosis, desabastecimiento de stock y falta de seguimiento
+en tratamientos con duración definida (como antibióticos o analgésicos).
+
+--------------------------------------------------------------------------------
+1. ARQUITECTURA TÉCNICA Y STACK TECNOLÓGICO
+--------------------------------------------------------------------------------
+- Framework: React 18+ con TypeScript y Vite.
+- Estilos: Tailwind CSS con paleta oscura sofisticada (Slate/Emerald/Sky/Amber/Rose)
+  y Modo de Alta Accesibilidad con fuentes grandes y alto contraste.
+- Iconografía: Lucide React (Pill, Clock, Calendar, CheckCircle2, AlertTriangle, ShieldCheck, etc.).
+- Audio: Motor de síntesis armónica mediante Web Audio API puro (sin dependencias de archivos externos mp3/wav)
+  con 6 tonos seleccionables (Campana Zen, Pulso Clínico, Carillón Suave, Melodía Alerta, Bip Digital, Flauta Calma).
+- Síntesis y Reconocimiento de Voz: Web Speech API (SpeechSynthesis y SpeechRecognition)
+  para dictado de comandos por voz y lectura asistida de tomas para adultos mayores.
+- Persistencia: Servicio de almacenamiento local seguro (LocalStorage) con arquitectura reactiva,
+  importación/exportación de copias de seguridad en JSON e inicialización automática con datos de prueba realistas.
+- Notificaciones: Notificaciones del navegador (Notification API) y generación de enlaces de alerta para WhatsApp.
+- Gráficos y Métricas: Recharts o componentes D3/SVG personalizados para adherencia terapéutica,
+  gráficas de cumplimiento por semana/mes y distribución de tomas.
+
+--------------------------------------------------------------------------------
+2. MODELOS DE DATOS (TYPESCRIPT DOMAIN SCHEMA)
+--------------------------------------------------------------------------------
+
+A. PACIENTE (Patient):
+- id: string
+- nombre: string
+- fechaNacimiento: string (YYYY-MM-DD)
+- genero: 'masculino' | 'femenino' | 'otro'
+- tipoSangre: string (ej. O+, A+, etc.)
+- alergias: string[]
+- condicionesMedicas: string[] (ej. Hipertensión, Diabetes Tipo 2)
+- pesoKg?: number
+- contactoEmergencia: { nombre: string; relacion: string; telefono: string; email?: string }
+- fotoUrl?: string
+- notas?: string
+- activo: boolean
+
+B. MÉDICO (Doctor):
+- id: string
+- nombre: string
+- especialidad: string (ej. Cardiología, Medicina General, Geriatría)
+- cedulaProfesional?: string
+- telefono: string
+- email?: string
+- clinicaOHospital?: string
+- activo: boolean
+
+C. MEDICAMENTO (Medicine):
+- id: string
+- nombreComercial: string (ej. Paracetamol, Losartán, Amoxicilina)
+- sustanciaActiva: string (ej. Paracetamol, Losartán Potásico)
+- concentracion: string (ej. 500 mg, 50 mg, 10 ml)
+- formaFarmaceutica: 'tableta' | 'capsula' | 'jarabe' | 'gotas' | 'inyeccion' | 'inhalador' | 'parche' | 'pomada' | 'supositorio'
+- viaAdministracion: 'oral' | 'topica' | 'inyectable' | 'oftalmica' | 'inhalatoria' | 'sublingual' | 'nasal'
+- stockActual: number
+- stockMinimoAlerta: number
+- unidadMedidaStock: string (tabletas, ml, dosis, cajas)
+- fechaCaducidad?: string
+- numeroLote?: string
+- fotoUrl?: string
+- notas?: string
+
+D. RECETA MÉDICA (Prescription):
+- id: string
+- pacienteId: string
+- doctorId: string
+- fechaEmision: string
+- diagnostico?: string
+- archivoAdjuntoUrl?: string (fotografía o PDF de la receta física)
+- medicamentos: PrescriptionMedicineItem[]
+- estado: 'activa' | 'finalizada' | 'cancelada'
+- activo: boolean
+
+E. ITEM DE MEDICAMENTO EN RECETA (PrescriptionMedicineItem):
+- id: string
+- medicamentoId: string
+- dosisCantidad: number
+- unidadDosis: string (tableta, ml, gota, puff)
+- viaAdministracion: AdministrationRoute
+- indicaciones: string (ej. "Tomar con alimentos", "30 min antes del desayuno")
+- fechaInicio: string (YYYY-MM-DD)
+- duracionDias?: number (ej. 3, 5, 7, 10, 14, 21, 30 días)
+- fechaFin?: string (calculada automáticamente o manual)
+- esIndefinido: boolean (Tratamiento Continuo/Crónico)
+- patronHorario: 'hora_fija' | 'cada_x_horas' | 'dias_semana' | 'frecuencia_dias'
+- horasFijas?: string[] (ej. ['08:00', '20:00'] con validación anti-duplicados)
+- intervaloHoras?: number (4, 6, 8, 12, 24 horas)
+- horaInicioIntervalo?: string
+- diasSemana?: number[] (0=Dom, 1=Lun, ..., 6=Sáb)
+- cadaNDias?: number (ej. cada 2 días)
+
+F. REGISTRO DE DOSIS (DoseRecord):
+- id: string
+- uniqueId: string (ej. \`\${pacienteId}_\${fecha}_\${horaProgramada}_\${prescripcionItemId}\`)
+- pacienteId: string
+- prescripcionId?: string
+- prescripcionItemId?: string
+- medicamentoId: string
+- fecha: string (YYYY-MM-DD)
+- horaProgramada: string (HH:mm)
+- horaTomadaReal?: string
+- dosisCantidad: number
+- unidadDosis: string
+- estado: 'programada' | 'tomada' | 'omitida' | 'pospuesta' | 'extra'
+- tipo: 'programada' | 'extra_rescate'
+- motivoOmision?: string (ej. "Malestar estomacal", "Falta de stock", "Olvido")
+- pospuestoHasta?: string (HH:mm o fecha completa)
+- registradoPorRol: 'paciente' | 'cuidador' | 'familiar' | 'medico'
+- notas?: string
+- stockDescontado: boolean
+- creadoEn: string
+
+--------------------------------------------------------------------------------
+3. REGLAS DE NEGOCIO Y MOTORES DE CÁLCULO
+--------------------------------------------------------------------------------
+
+A. MOTOR DE CÁLCULO DE DURACIÓN DE TRATAMIENTO:
+- Cálculo inclusivo de fecha de término:
+  FechaFin = FechaInicio + (duracionDias - 1 días)
+  Ejemplo: Inicio el 2026-09-02 con duración de 7 días -> Concluye el 2026-09-08 inclusive.
+- Cálculo de días transcurridos y restantes respecto a la fecha actual:
+  * Día X de Total de Días
+  * Porcentaje de avance (0% a 100%)
+  * Estados: 'no_iniciado', 'en_curso', 'ultimo_dia', 'finalizado', 'indefinido'.
+  * Notificación destacada con animación y alerta de "¡Último día de tratamiento hoy!"
+    para tratamientos con antibióticos o ciclos cerrados.
+  * Cálculo del total de dosis requeridas durante todo el ciclo (Dosis/día * Días totales).
+
+B. PREVENCIÓN DE DOSIS DUPLICADAS Y VALIDACIÓN DE HORARIOS:
+- Deduplicación estricta de horas fijas: Si el usuario intenta agregar una hora repetida,
+  el sistema rechaza la duplicación y muestra una alerta en tiempo real.
+- Generación limpia para patrones "Cada X horas" a partir de una hora inicial (ej. 08:00 cada 8 hrs -> 08:00, 16:00, 00:00).
+- Identificador determinista único de toma (UniqueId) para evitar registrar dos veces
+  la misma toma programada en la base de datos local.
+- Botón para registrar "Dosis de Rescate / Extra" no programada con justificación clínica
+  sin sobreescribir las dosis programadas regulares.
+
+C. CONTROL DE INVENTARIO Y STOCK AUTOMÁTICO:
+- Al marcar una dosis como "Tomada" o registrar una dosis extra, se descuenta
+  automáticamente del stock del medicamento correspondiente.
+- Si se desmarca o se revierte la toma, el stock se repone automáticamente.
+- Banderas visuales y avisos automáticos de "Stock Bajo" cuando el stock actual
+  es menor o igual al umbral mínimo configurado.
+- Botón de reabastecimiento rápido directo con registro de nuevo lote y fecha de vencimiento.
+
+D. ADHERENCIA Y GESTIÓN DE ATRASOS:
+- Clasificación de tomas según la hora actual:
+  * Tomadas (Completadas a tiempo)
+  * Próximas (Dentro del horario futuro del día)
+  * Atrasadas / En Alerta (Horario pasado sin registrar toma)
+  * Dosis pendientes de días anteriores mostradas en banner de atención prioritaria.
+- Posibilidad de "Posponer" una toma (15 min, 30 min, 1 hora, 2 horas) reprogramando la alarma.
+
+--------------------------------------------------------------------------------
+4. INTERFAZ DE USUARIO Y EXPERIENCIA (UI/UX)
+--------------------------------------------------------------------------------
+
+A. ENCABEZADO Y CONTROLES GLOBALES:
+- Selector de Paciente Activo con foto, edad, tipo de sangre, alergias visibles y cambio rápido.
+- Selector de Rol (Cuidador, Paciente, Médico).
+- Interruptor de Modo Accesibilidad (fuentes extra grandes, botones de 56px+, alto contraste).
+- Botón de Pánico SOS con acceso a llamada de emergencia y envío de alerta rápida por WhatsApp.
+- Asistente de Voz interactivo por micrófono con comandos: "Qué me toca tomar hoy",
+  "Marcar como tomada", "Cómo voy de adherencia", etc.
+- Acceso a Configuración (Exportar/Importar JSON, Tonos de Alarma, Descargar Prompt Final).
+
+B. PESTAÑAS PRINCIPALES DE LA APLICACIÓN:
+1. TABLERO DE TOMAS (Dashboard):
+   - Selector de Fecha (Día anterior, Hoy, Día siguiente, selector de calendario).
+   - Indicador circular/barra de Adherencia del Día (% de cumplimiento).
+   - Tarjetas de Tomas agrupadas por periodos (Mañana, Tarde, Noche) con:
+     * Nombre comercial, sustancia activa, concentración y vía.
+     * Indicador de progreso de tratamiento (Día X de Y con barra de progreso).
+     * Estado del medicamento (Tomada, Pendiente, Atrasada).
+     * Indicaciones especiales (ej. "Con alimentos").
+     * Estado del stock restante con advertencia si está por agotarse.
+     * Botones de acción directa: "Marcar Tomada", "Omitir (con motivo)", "Posponer", "Lectura por Voz".
+   - Botón flotante para "Registrar Dosis Manual / Extra de Rescate".
+
+2. GESTIÓN DE PACIENTES:
+   - Fichas completas de pacientes con foto, datos demográficos, contactos de emergencia,
+     alergias en etiquetas rojas de alta visibilidad, y condiciones crónicas.
+   - Acceso rápido a historial de tomas del paciente y descarga de credencial médica.
+
+3. GESTIÓN DE MÉDICOS:
+   - Directorio de médicos tratantes con especialidad, cédula, teléfono, clínica y recetas vinculadas.
+   - Enlace directo para llamada o WhatsApp al consultorio.
+
+4. CATÁLOGO DE MEDICAMENTOS E INVENTARIO:
+   - Búsqueda alfabética A-Z con barra de filtros por letra inicial y búsqueda en tiempo real.
+   - Tarjetas con foto del empaque, forma farmacéutica, concentración y estado de stock.
+   - Alerta visual de medicamentos por caducar o agotados.
+   - Modal de adición rápida de nuevo medicamento al catálogo.
+
+5. RECETAS MÉDICAS:
+   - Registro de recetas con médico emisor, diagnóstico y foto adjunta.
+   - Constructor de medicamentos prescritos con:
+     * Selector alfabético de medicamento.
+     * Vía de administración y dosis.
+     * Control de duración: Días de tratamiento con presets (3, 5, 7, 10, 14, 21, 30 días)
+       o modo Continuo/Crónico.
+     * Selector de patrón de horarios con validación anti-duplicados y chips de horas rápidas.
+     * Resumen en vivo de tomas por día y dosis totales calculadas para todo el tratamiento.
+   - Listado de recetas activas con barras de progreso de tratamiento para cada fármaco.
+
+6. REPORTES Y ANÁLISIS MÉDICO:
+   - Gráfica de adherencia histórica (últimos 7 días, 30 días o rango personalizado).
+   - Distribución de tomas realizadas, omitidas y pospuestas con motivos frecuentes.
+   - Generación de Reporte Clínico en PDF o formato de impresión limpio para entregar al médico.
+
+--------------------------------------------------------------------------------
+5. CRITERIOS DE ACCESIBILIDAD Y SEGURIDAD CLÍNICA
+--------------------------------------------------------------------------------
+- Cumplimiento de estándares de contraste WCAG AA/AAA.
+- Diálogos de confirmación para acciones críticas (omisiones, eliminación de pacientes/recetas).
+- Sin pérdida de datos gracias a la sincronización persistente en LocalStorage.
+- Prevención total de solapamiento de alarmas y tomas fantasmas.
+- Preparado para ser exportado y empaquetado como Progressive Web App (PWA) móvil y de escritorio.
+================================================================================
+`;
