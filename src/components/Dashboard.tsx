@@ -1,3 +1,4 @@
+import { avatarFromName } from '../services/avatarService';
 import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { 
@@ -193,7 +194,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex items-center gap-4">
             <div className="relative">
               <img
-                src={activePatient.fotoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                src={activePatient.fotoUrl || avatarFromName(activePatient.nombre)}
                 alt={activePatient.nombre}
                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover ring-2 ring-emerald-500/50 shadow-md"
               />

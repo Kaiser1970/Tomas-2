@@ -1,3 +1,4 @@
+import { hasLowStock } from '../services/stockUtils';
 import React, { useState } from 'react';
 import { Medicine, MedicinePresentation } from '../types';
 import { 
@@ -77,7 +78,7 @@ export const MedicinesManagement: React.FC<MedicinesManagementProps> = ({
         (m.codigoBarras && m.codigoBarras.includes(searchTerm));
       
       const matchesPres = filterPresentation === 'all' || m.presentacion === filterPresentation;
-      const matchesLowStock = !filterLowStockOnly || (m.stockActual <= m.stockMinimoAlerta);
+      const matchesLowStock = !filterLowStockOnly || hasLowStock(m);
       const matchesFav = !filterFavoritesOnly || m.esFavorito;
 
       return matchesSearch && matchesPres && matchesLowStock && matchesFav;
@@ -253,7 +254,7 @@ export const MedicinesManagement: React.FC<MedicinesManagementProps> = ({
       {/* Medicines Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((med) => {
-          const isLowStock = med.stockActual <= med.stockMinimoAlerta;
+          const isLowStock = hasLowStock(med);
           const presInfo = PRESENTATIONS.find(p => p.id === med.presentacion);
 
           return (
@@ -294,6 +295,19 @@ export const MedicinesManagement: React.FC<MedicinesManagementProps> = ({
                     <span className="text-[11px] text-slate-500">({med.laboratorio})</span>
                   )}
                 </div>
+
+                {med.origenCatalogo === 'IMSS' && (
+                  <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-950/50 text-emerald-300 border border-emerald-500/20 font-semibold">
+                      Cuadro Básico IMSS
+                    </span>
+                    {med.grupoTerapeutico && <span>{med.grupoTerapeutico}</span>}
+                    {med.formaFarmaceutica && <span>· {med.formaFarmaceutica}</span>}
+                    <span className="font-mono">
+                      · {med.claveCBM ? `Clave ${med.claveCBM}` : 'Clave por verificar'}
+                    </span>
+                  </div>
+                )}
 
                 {med.codigoBarras && (
                   <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-400 bg-slate-800/50 px-2 py-1 rounded-lg">

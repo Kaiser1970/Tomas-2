@@ -1,3 +1,4 @@
+import { hasLowStock } from './services/stockUtils';
 import React, { useState, useEffect } from 'react';
 import { 
   Patient, 
@@ -18,6 +19,9 @@ import { PrescriptionsManagement } from './components/PrescriptionsManagement';
 import { ReportsAndAnalytics } from './components/ReportsAndAnalytics';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { PromptModal } from './components/PromptModal';
+import { SettingsModal } from './components/SettingsModal';
+import { PaymentReminderBanner } from './components/PaymentReminderBanner';
+import { initReminders, isNativeApp } from './services/reminderService';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
@@ -34,6 +38,7 @@ export default function App() {
   // Modals
   const [showPatientSwitcher, setShowPatientSwitcher] = useState(false);
   const [showPromptModal, setShowPromptModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Load and refresh state from storageService
   const refreshAllData = () => {
@@ -55,6 +60,8 @@ export default function App() {
 
   useEffect(() => {
     refreshAllData();
+    // Recordatorios locales del sistema (solo en la app Android instalada)
+    void initReminders();
   }, []);
 
   const activePatient = patients.find(p => p.id === activePatientId) || patients[0];
@@ -135,7 +142,7 @@ export default function App() {
   };
 
   // Check low stock count
-  const lowStockCount = medicines.filter(m => m.activo && m.stockActual <= m.stockMinimoAlerta).length;
+  const lowStockCount = medicines.filter(m => m.activo && hasLowStock(m)).length;
 
   return (
     <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950 ${
@@ -153,7 +160,11 @@ export default function App() {
         onToggleAccessibility={() => setAccessibilityMode(!accessibilityMode)}
         lowStockCount={lowStockCount}
         onOpenPromptModal={() => setShowPromptModal(true)}
+        onOpenSettings={() => setShowSettings(true)}
       />
+
+      {/* Aviso de mensualidad (no bloquea la app) */}
+      <PaymentReminderBanner />
 
       {/* Main View Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
@@ -227,9 +238,33 @@ export default function App() {
             )}
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-            <h2 className="text-xl font-bold text-white">Cargando MediControl...</h2>
-            <p className="text-xs text-slate-400">Iniciando perfil de paciente y agenda de tomas.</p>
+          <div className="space-y-6">
+            <div className="rounded-3xl border border-emerald-500/30 bg-emerald-950/20 p-6 text-center space-y-3">
+              <h2 className="text-xl font-bold text-white">Bienvenido a MediControl</h2>
+              <p className="text-sm text-slate-300 max-w-xl mx-auto">
+                Empieza dando de alta a tu primer paciente. Después registra su receta y la app te avisará
+                a la hora de cada dosis, incluso con la aplicación cerrada.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  storageService.loadDemoData();
+                  refreshAllData();
+                }}
+                className="text-xs text-slate-400 hover:text-slate-200 underline"
+              >
+                Prefiero ver primero una demostración con pacientes de ejemplo
+              </button>
+            </div>
+
+            <PatientsManagement
+              patients={patients}
+              activePatientId=""
+              onSelectActivePatient={handleSelectPatient}
+              onAddPatient={handleAddPatient}
+              onUpdatePatient={handleUpdatePatient}
+              onDeletePatient={handleDeletePatient}
+            />
           </div>
         )}
       </main>
@@ -248,7 +283,15 @@ export default function App() {
       />
 
       {/* Offline Status Floating Indicator */}
-      <OfflineIndicator />
+      {!isNativeApp() && <OfflineIndicator />}
+
+      {showSettings && (
+        <SettingsModal
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          onDataRestored={refreshAllData}
+        />
+      )}
 
       {/* Technical Prompt and System Specification Modal */}
       <PromptModal

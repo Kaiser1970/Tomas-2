@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Cápsula (icono monocromático de la barra de notificaciones) -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M4.22,11.29l7.07,-7.07a4.5,4.5 0,0 1,6.36 6.36l-7.07,7.07a4.5,4.5 0,0 1,-6.36 -6.36zM6.34,12.7l3.54,3.54l7.07,-7.07a2.5,2.5 0,0 0,-3.54 -3.54z" />
+</vector>

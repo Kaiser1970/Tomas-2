@@ -1,4 +1,5 @@
 import { Patient, Doctor, Medicine, Prescription, DoseRecord, VitalSign, UserRole } from '../types';
+import { IMSS_CATALOG } from '../data/imssCatalog';
 import { INITIAL_PATIENTS, INITIAL_DOCTORS, INITIAL_MEDICINES, INITIAL_PRESCRIPTIONS, INITIAL_VITAL_SIGNS } from '../data/initialData';
 
 const STORAGE_KEYS = {
@@ -14,34 +15,44 @@ const STORAGE_KEYS = {
 };
 
 class StorageService {
+  // Guarda y avisa a la app que hubo cambios (para reprogramar recordatorios).
+  private persist(key: string, value: string): void {
+    localStorage.setItem(key, value);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('medicontrol:data-changed'));
+    }
+  }
+
   // --- Initialization ---
+  // Primera vez que se abre la app: arranca VACÍA (sin pacientes ni recetas) y con el catálogo IMSS cargado.
   public initialize(): void {
     if (typeof window === 'undefined') return;
 
-    if (!localStorage.getItem(STORAGE_KEYS.PATIENTS)) {
-      this.savePatients(INITIAL_PATIENTS);
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.DOCTORS)) {
-      this.saveDoctors(INITIAL_DOCTORS);
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.MEDICINES)) {
-      this.saveMedicines(INITIAL_MEDICINES);
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.PRESCRIPTIONS)) {
-      this.savePrescriptions(INITIAL_PRESCRIPTIONS);
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.VITAL_SIGNS)) {
-      this.saveVitalSigns(INITIAL_VITAL_SIGNS);
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.ACTIVE_PATIENT_ID)) {
-      this.setActivePatientId('pat-1');
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.USER_ROLE)) {
-      this.setUserRole('cuidador');
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.DOSE_RECORDS)) {
-      // Seed some past dose records for demonstration of adherence and backlog
-      const pastRecords: DoseRecord[] = [
+    if (!localStorage.getItem(STORAGE_KEYS.PATIENTS)) this.savePatients([]);
+    if (!localStorage.getItem(STORAGE_KEYS.DOCTORS)) this.saveDoctors([]);
+    if (!localStorage.getItem(STORAGE_KEYS.MEDICINES)) this.saveMedicines([]);
+    if (!localStorage.getItem(STORAGE_KEYS.PRESCRIPTIONS)) this.savePrescriptions([]);
+    if (!localStorage.getItem(STORAGE_KEYS.VITAL_SIGNS)) this.saveVitalSigns([]);
+    if (!localStorage.getItem(STORAGE_KEYS.DOSE_RECORDS)) this.saveDoseRecords([]);
+    if (!localStorage.getItem(STORAGE_KEYS.USER_ROLE)) this.setUserRole('cuidador');
+
+    this.ensureImssCatalog();
+  }
+
+  // Reemplaza los datos por un conjunto de demostración (pacientes, recetas y tomas de ejemplo).
+  public loadDemoData(): void {
+    this.clearAllKeepingSubscription();
+
+    this.savePatients(INITIAL_PATIENTS);
+    this.saveDoctors(INITIAL_DOCTORS);
+    this.saveMedicines(INITIAL_MEDICINES);
+    this.savePrescriptions(INITIAL_PRESCRIPTIONS);
+    this.saveVitalSigns(INITIAL_VITAL_SIGNS);
+    this.setActivePatientId('pat-1');
+    this.setUserRole('cuidador');
+
+    // Tomas pasadas de ejemplo para ver adherencia y atrasos
+    const pastRecords: DoseRecord[] = [
         {
           id: 'dose-past-1',
           pacienteId: 'pat-1',
@@ -107,7 +118,29 @@ class StorageService {
           stockDescontado: true
         }
       ];
-      this.saveDoseRecords(pastRecords);
+    this.saveDoseRecords(pastRecords);
+
+    this.ensureImssCatalog();
+  }
+
+  // Borra todos los datos (menos el estado de la mensualidad) y deja la app vacía con el catálogo IMSS.
+  private clearAllKeepingSubscription(): void {
+    const SUBSCRIPTION_KEY = 'medicontrol_subscription_v1';
+    let subscription: string | null = null;
+    try {
+      subscription = localStorage.getItem(SUBSCRIPTION_KEY);
+    } catch { /* se ignora */ }
+    localStorage.clear();
+    if (subscription) localStorage.setItem(SUBSCRIPTION_KEY, subscription);
+  }
+
+  // Agrega (sin duplicar ni tocar lo existente) los medicamentos del catálogo IMSS precargado.
+  private ensureImssCatalog(): void {
+    const current = this.getMedicines();
+    const existing = new Set(current.map(m => m.id));
+    const missing = IMSS_CATALOG.filter(m => !existing.has(m.id));
+    if (missing.length > 0) {
+      this.saveMedicines([...current, ...missing]);
     }
   }
 
@@ -122,7 +155,7 @@ class StorageService {
   }
 
   public savePatients(patients: Patient[]): void {
-    localStorage.setItem(STORAGE_KEYS.PATIENTS, JSON.stringify(patients));
+    this.persist(STORAGE_KEYS.PATIENTS, JSON.stringify(patients));
   }
 
   public savePatient(patient: Patient): void {
@@ -164,7 +197,7 @@ class StorageService {
   }
 
   public saveDoctors(doctors: Doctor[]): void {
-    localStorage.setItem(STORAGE_KEYS.DOCTORS, JSON.stringify(doctors));
+    this.persist(STORAGE_KEYS.DOCTORS, JSON.stringify(doctors));
   }
 
   public saveDoctor(doctor: Doctor): void {
@@ -205,7 +238,7 @@ class StorageService {
   }
 
   public saveMedicines(medicines: Medicine[]): void {
-    localStorage.setItem(STORAGE_KEYS.MEDICINES, JSON.stringify(medicines));
+    this.persist(STORAGE_KEYS.MEDICINES, JSON.stringify(medicines));
   }
 
   public saveMedicine(medicine: Medicine): void {
@@ -258,7 +291,7 @@ class StorageService {
   }
 
   public savePrescriptions(prescriptions: Prescription[]): void {
-    localStorage.setItem(STORAGE_KEYS.PRESCRIPTIONS, JSON.stringify(prescriptions));
+    this.persist(STORAGE_KEYS.PRESCRIPTIONS, JSON.stringify(prescriptions));
   }
 
   public savePrescription(prescription: Prescription): void {
@@ -299,7 +332,7 @@ class StorageService {
   }
 
   public saveDoseRecords(records: DoseRecord[]): void {
-    localStorage.setItem(STORAGE_KEYS.DOSE_RECORDS, JSON.stringify(records));
+    this.persist(STORAGE_KEYS.DOSE_RECORDS, JSON.stringify(records));
   }
 
   public recordDose(record: DoseRecord): void {
@@ -334,7 +367,7 @@ class StorageService {
   }
 
   public saveVitalSigns(signs: VitalSign[]): void {
-    localStorage.setItem(STORAGE_KEYS.VITAL_SIGNS, JSON.stringify(signs));
+    this.persist(STORAGE_KEYS.VITAL_SIGNS, JSON.stringify(signs));
   }
 
   public saveVitalSign(sign: VitalSign): void {
@@ -354,11 +387,11 @@ class StorageService {
 
   // --- Active Patient & Preferences ---
   public getActivePatientId(): string {
-    return localStorage.getItem(STORAGE_KEYS.ACTIVE_PATIENT_ID) || 'pat-1';
+    return localStorage.getItem(STORAGE_KEYS.ACTIVE_PATIENT_ID) || '';
   }
 
   public setActivePatientId(id: string): void {
-    localStorage.setItem(STORAGE_KEYS.ACTIVE_PATIENT_ID, id);
+    this.persist(STORAGE_KEYS.ACTIVE_PATIENT_ID, id);
   }
 
   public getUserRole(): UserRole {
@@ -366,7 +399,7 @@ class StorageService {
   }
 
   public setUserRole(role: UserRole): void {
-    localStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
+    this.persist(STORAGE_KEYS.USER_ROLE, role);
   }
 
   public getAccessibilityMode(): boolean {
@@ -374,17 +407,19 @@ class StorageService {
   }
 
   public setAccessibilityMode(enabled: boolean): void {
-    localStorage.setItem(STORAGE_KEYS.ACCESSIBILITY_MODE, String(enabled));
+    this.persist(STORAGE_KEYS.ACCESSIBILITY_MODE, String(enabled));
   }
 
   // --- Reset / Backup ---
+  // Borra todo y deja la app vacía (con el catálogo IMSS).
   public resetToDefault(): void {
-    localStorage.clear();
+    this.clearAllKeepingSubscription();
     this.initialize();
   }
 
+  // Carga los datos de demostración.
   public resetToInitialData(): void {
-    this.resetToDefault();
+    this.loadDemoData();
   }
 
   public exportBackup(): string {
@@ -408,12 +443,18 @@ class StorageService {
   public importBackup(jsonString: string): boolean {
     try {
       const data = JSON.parse(jsonString);
+      const lists = [data.patients, data.doctors, data.medicines, data.prescriptions, data.doseRecords, data.vitalSigns];
+      const hasSomething = lists.some(l => Array.isArray(l));
+      const allValid = lists.every(l => l === undefined || Array.isArray(l));
+      if (!data || typeof data !== 'object' || !hasSomething || !allValid) return false;
+
       if (data.patients) this.savePatients(data.patients);
       if (data.doctors) this.saveDoctors(data.doctors);
       if (data.medicines) this.saveMedicines(data.medicines);
       if (data.prescriptions) this.savePrescriptions(data.prescriptions);
       if (data.doseRecords) this.saveDoseRecords(data.doseRecords);
       if (data.vitalSigns) this.saveVitalSigns(data.vitalSigns);
+      this.ensureImssCatalog();
       return true;
     } catch (e) {
       console.error('Import failed:', e);

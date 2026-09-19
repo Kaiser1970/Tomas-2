@@ -16,6 +16,10 @@ import {
   Smartphone
 } from 'lucide-react';
 import { NotificationSound } from '../types';
+import { ReminderSettingsCard } from './ReminderSettingsCard';
+import { SubscriptionCard } from './SubscriptionCard';
+import { saveAndShareTextFile } from '../services/fileService';
+import { isNativeApp } from '../services/reminderService';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -43,17 +47,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const [restoreStatus, setRestoreStatus] = useState<string | null>(null);
 
-  const handleExportBackup = () => {
-    const jsonStr = storageService.exportFullBackupJSON();
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `medicontrol_respaldo_${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const handleExportBackup = async () => {
+    try {
+      const jsonStr = storageService.exportFullBackupJSON();
+      await saveAndShareTextFile(`medicontrol_respaldo_${new Date().toISOString().slice(0, 10)}.json`, jsonStr, 'application/json');
+      setRestoreStatus('¡Respaldo generado! Guárdalo en un lugar seguro (Drive, correo o WhatsApp).');
+      setTimeout(() => setRestoreStatus(null), 4000);
+    } catch {
+      setRestoreStatus('Error al generar el respaldo.');
+    }
   };
 
   const handleDownloadPrompt = async () => {
@@ -98,7 +100,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   const handleResetData = () => {
-    if (confirm('¿Estás seguro de restablecer todos los datos a la configuración inicial de prueba?')) {
+    if (confirm('Esto reemplaza TODOS tus datos por pacientes y recetas de ejemplo. ¿Continuar?')) {
       storageService.resetToInitialData();
       onDataRestored();
       onClose();
@@ -133,6 +135,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <span>{restoreStatus}</span>
             </div>
           )}
+
+          <ReminderSettingsCard />
+
+          <div className="pt-3 border-t border-slate-800">
+            <SubscriptionCard />
+          </div>
 
           {/* Mobile Installation Action */}
           {onOpenInstall && (
@@ -189,6 +197,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
 
             {/* Final Application Specification Prompt Download */}
+            {!isNativeApp() && (
             <div className="p-3.5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -208,6 +217,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <span>Descargar</span>
               </button>
             </div>
+            )}
             
             <p className="text-[11px] text-slate-500">
               Guarda un archivo de respaldo con pacientes, recetas, historial de tomas y catálogo de medicamentos.
@@ -240,18 +250,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="pt-3 border-t border-slate-800 space-y-2">
             <h4 className="text-xs font-bold text-rose-400 flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4" />
-              Restablecer Datos de Demostración
+              Datos de Demostración
             </h4>
             <div className="flex items-center justify-between">
               <p className="text-[11px] text-slate-400">
-                Restaura el conjunto de pacientes, recetas y tomas predeterminadas.
+                Reemplaza tus datos por pacientes, recetas y tomas de ejemplo. Haz un respaldo antes.
               </p>
               <button
                 type="button"
                 onClick={handleResetData}
                 className="px-3 py-1.5 rounded-xl bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-500/30 text-xs font-bold transition-colors"
               >
-                Restablecer
+                Cargar demo
               </button>
             </div>
           </div>

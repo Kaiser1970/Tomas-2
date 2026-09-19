@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MediControl</string>
+    <string name="title_activity_main">MediControl</string>
+    <string name="package_name">com.costossecurity.medicontrol</string>
+    <string name="custom_url_scheme">com.costossecurity.medicontrol</string>
+</resources>

@@ -1,3 +1,4 @@
+import { avatarFromName } from '../services/avatarService';
 import React from 'react';
 import { Patient, NotificationSound } from '../types';
 import { calculateAge } from '../services/scheduleEngine';
@@ -91,7 +92,7 @@ export const PatientSwitcherModal: React.FC<PatientSwitcherModalProps> = ({
                   {/* Avatar */}
                   <div className="relative">
                     <img
-                      src={patient.fotoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
+                      src={patient.fotoUrl || avatarFromName(patient.nombre)}
                       alt={patient.nombre}
                       className="w-14 h-14 rounded-full object-cover border-2 border-slate-700"
                     />

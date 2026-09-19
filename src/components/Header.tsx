@@ -1,3 +1,4 @@
+import { avatarFromName } from '../services/avatarService';
 import React, { useState } from 'react';
 import { Patient, UserRole, Medicine, AppTab } from '../types';
 import { calculateAge } from '../services/scheduleEngine';
@@ -13,8 +14,10 @@ import {
   AlertCircle, 
   ChevronDown, 
   RefreshCw,
-  Bell
+  Bell,
+  Settings
 } from 'lucide-react';
+import { isNativeApp } from '../services/reminderService';
 
 interface HeaderProps {
   activeTab: AppTab;
@@ -29,6 +32,7 @@ interface HeaderProps {
   lowStockMedicines?: Medicine[];
   onReadTodayDosesVoice?: () => void;
   onOpenPromptModal?: () => void;
+  onOpenSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -43,7 +47,8 @@ export const Header: React.FC<HeaderProps> = ({
   lowStockCount = 0,
   lowStockMedicines = [],
   onReadTodayDosesVoice,
-  onOpenPromptModal
+  onOpenPromptModal,
+  onOpenSettings
 }) => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showStockMenu, setShowStockMenu] = useState(false);
@@ -94,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <div className="relative">
                 <img
-                  src={activePatient.fotoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
+                  src={activePatient.fotoUrl || avatarFromName(activePatient.nombre)}
                   alt={activePatient.nombre}
                   className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-500/60"
                 />
@@ -216,8 +221,20 @@ export const Header: React.FC<HeaderProps> = ({
               <Eye className="w-4 h-4" />
             </button>
 
+            {/* Settings (recordatorios, respaldo, mensualidad) */}
+            {onOpenSettings && (
+              <button
+                onClick={onOpenSettings}
+                className="p-2 rounded-xl border bg-slate-800/80 text-slate-300 hover:text-white border-slate-700 transition-colors"
+                title="Configuración: recordatorios, respaldo y mensualidad"
+                aria-label="Configuración"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+            )}
+
             {/* Prompt Download & Spec button */}
-            {onOpenPromptModal && (
+            {onOpenPromptModal && !isNativeApp() && (
               <button
                 onClick={onOpenPromptModal}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 transition-colors text-xs font-semibold cursor-pointer shadow-sm"

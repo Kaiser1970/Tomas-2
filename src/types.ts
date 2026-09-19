@@ -79,6 +79,10 @@ export interface Medicine {
   unidadMedida: string; // comprimidos, ml, gotas, puff, etc.
   esFavorito?: boolean;
   instruccionesGenerales?: string;
+  claveCBM?: string; // Clave del Cuadro Básico (ej. 010.000.0104.00)
+  formaFarmaceutica?: string; // ej. Tableta, Suspensión oral
+  grupoTerapeutico?: string; // ej. Cardiología
+  origenCatalogo?: 'IMSS'; // Presente si viene del catálogo precargado
   activo: boolean;
   creadoEn: string;
 }

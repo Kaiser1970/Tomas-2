@@ -6,7 +6,6 @@ export const INITIAL_PATIENTS: Patient[] = [
     nombre: 'Don Roberto Garza Morales',
     fechaNacimiento: '1948-04-12', // 78 años
     sexo: 'M',
-    fotoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     alergias: ['Penicilina', 'Sulfitos'],
     padecimientosCronicos: ['Hipertensión Arterial', 'Diabetes Tipo 2', 'Artrosis'],
     contactoEmergencia: {
@@ -25,7 +24,6 @@ export const INITIAL_PATIENTS: Patient[] = [
     nombre: 'Doña Carmen Mendoza Solís',
     fechaNacimiento: '1953-09-22', // 72 años
     sexo: 'F',
-    fotoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
     alergias: ['AINES (Ibuprofeno)', 'Aspirina'],
     padecimientosCronicos: ['Insuficiencia Cardíaca Leve', 'Osteoporosis'],
     contactoEmergencia: {
@@ -44,7 +42,6 @@ export const INITIAL_PATIENTS: Patient[] = [
     nombre: 'Mateo Hernández Vega',
     fechaNacimiento: '2016-11-05', // 9 años
     sexo: 'M',
-    fotoUrl: 'https://images.unsplash.com/photo-1543610892-0b1f7e6d8ac1?w=150&auto=format&fit=crop&q=80',
     alergias: ['Amoxicilina'],
     padecimientosCronicos: ['Asma Bronquial'],
     contactoEmergencia: {
@@ -202,7 +199,6 @@ export const INITIAL_PRESCRIPTIONS: Prescription[] = [
     fechaEmision: '2026-02-15',
     diagnostico: 'Hipertensión grado 2 y control metabólico',
     estado: 'activa',
-    archivoAdjuntoUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
     activo: true,
     creadoEn: '2026-02-15T10:00:00Z',
     medicamentos: [

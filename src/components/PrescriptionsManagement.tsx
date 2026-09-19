@@ -130,7 +130,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
     setFormError(null);
     setDuplicateWarnings({});
     setCustomHours({});
-    setArchivoAdjuntoUrl('https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80');
+    setArchivoAdjuntoUrl('');
     setFormMeds([
       {
         id: `item-${Date.now()}`,
@@ -1200,7 +1200,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
                   <Paperclip className="w-3.5 h-3.5 text-slate-400" />
-                  Foto o Escaneo de Receta Física (URL)
+                  Foto o Escaneo de Receta Física (enlace, opcional)
                 </label>
                 <input
                   type="url"

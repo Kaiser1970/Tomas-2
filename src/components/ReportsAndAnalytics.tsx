@@ -174,46 +174,71 @@ export const ReportsAndAnalytics: React.FC<ReportsAndAnalyticsProps> = ({
     setShowVitalModal(false);
   };
 
-  // AI Medical Summary Request (Server-side Gemini proxy)
-  const handleGenerateAiSummary = async () => {
+  // Resumen clínico de adherencia generado 100% en el dispositivo (sin internet, sin IA externa)
+  const handleGenerateAiSummary = () => {
     setIsAiLoading(true);
     setAiSummary(null);
-    try {
-      const response = await fetch('/api/gemini/medical-summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          patient: activePatient,
-          adherenceStats: {
-            overallAdherence,
-            totalTakenInPeriod,
-            totalOmittedInPeriod,
-            daysEvaluated: daysCount,
-            omissions: omittedRecords.slice(0, 5)
-          },
-          recentVitals: vitalSigns.slice(-5)
-        })
-      });
 
-      const data = await response.json();
-      if (data.summary) {
-        setAiSummary(data.summary);
-      } else {
-        setAiSummary(
-          `**Resumen Clínico Automático para ${activePatient.nombre}:**\n\n` +
-          `• **Nivel de Adherencia:** ${overallAdherence}% en los últimos ${daysCount} días con ${totalTakenInPeriod} tomas exitosas.\n` +
-          `• **Omisiones registradas:** ${totalOmittedInPeriod} tomas omitidas. Motivos principales: náuseas u olvido.\n` +
-          `• **Signos Vitales:** Valores hemodinámicos estables.\n` +
-          `• **Recomendación médica:** Mantener el régimen actual de tomas y asegurar el resurtido oportuno de fármacos.`
-        );
-      }
-    } catch {
-      setAiSummary(
-        `**Evaluación Médica de Adherencia:**\n\nEl paciente ${activePatient.nombre} presenta un índice de cumplimiento del **${overallAdherence}%** (${totalTakenInPeriod} tomas completadas). Se sugiere revisar los horarios de los fármacos con omisiones recurrentes para mejorar el confort del paciente.`
-      );
-    } finally {
-      setIsAiLoading(false);
-    }
+    const nivel =
+      overallAdherence >= 90 ? 'óptimo' : overallAdherence >= 75 ? 'aceptable' : overallAdherence >= 50 ? 'bajo' : 'crítico';
+
+    // Motivos de omisión más frecuentes
+    const motivos = new Map<string, number>();
+    omittedRecords.forEach(r => {
+      const m = (r.motivoOmision || 'Sin motivo registrado').trim();
+      motivos.set(m, (motivos.get(m) || 0) + 1);
+    });
+    const topMotivos = Array.from(motivos.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([m, n]) => `${m} (${n})`)
+      .join('; ');
+
+    // Promedios de signos vitales recientes
+    const recientes = vitalSigns.slice(-5);
+    const prom = (vals: (number | undefined)[]) => {
+      const v = vals.filter((x): x is number => typeof x === 'number' && !isNaN(x) && x > 0);
+      return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
+    };
+    const sis = prom(recientes.map(v => v.presionArterialSistolica ?? v.presionSistolica));
+    const dia = prom(recientes.map(v => v.presionArterialDiastolica ?? v.presionDiastolica));
+    const glu = prom(recientes.map(v => v.glucosaMgDl ?? v.glucosa));
+    const fc = prom(recientes.map(v => v.frecuenciaCardiaca));
+    const sat = prom(recientes.map(v => v.saturacionOxigeno));
+
+    const vitales: string[] = [];
+    if (sis && dia) vitales.push(`presión arterial promedio ${sis}/${dia} mmHg`);
+    if (glu) vitales.push(`glucosa promedio ${glu} mg/dL`);
+    if (fc) vitales.push(`frecuencia cardíaca promedio ${fc} lpm`);
+    if (sat) vitales.push(`saturación de oxígeno promedio ${sat}%`);
+
+    const alertas: string[] = [];
+    if (sis && (sis >= 140 || (dia ?? 0) >= 90)) alertas.push('presión arterial por arriba de lo esperado');
+    if (glu && glu >= 180) alertas.push('glucosa elevada');
+    if (sat && sat < 92) alertas.push('saturación de oxígeno baja');
+
+    const lineas = [
+      `**Resumen de adherencia de ${activePatient.nombre}** (últimos ${daysCount} días, generado en el dispositivo):`,
+      '',
+      `• **Adherencia:** ${overallAdherence}% (${nivel}) con ${totalTakenInPeriod} tomas confirmadas y ${totalOmittedInPeriod} omitidas.`,
+      totalOmittedInPeriod > 0
+        ? `• **Omisiones:** ${topMotivos || 'sin motivos registrados'}.`
+        : '• **Omisiones:** ninguna registrada en el periodo.',
+      vitales.length
+        ? `• **Signos vitales recientes:** ${vitales.join('; ')}.`
+        : '• **Signos vitales recientes:** sin registros en el periodo.',
+      alertas.length
+        ? `• **Atención:** ${alertas.join('; ')}. Comentar con el médico tratante.`
+        : '• **Atención:** sin valores fuera de rango en los registros recientes.',
+      overallAdherence < 75
+        ? '• **Sugerencia:** revisar horarios y motivos de omisión con el paciente o cuidador para mejorar el apego.'
+        : '• **Sugerencia:** mantener el esquema actual y vigilar el resurtido oportuno de los medicamentos.',
+      '',
+      '_Resumen informativo automático. No sustituye la valoración de un médico._'
+    ];
+
+    setAiSummary(lineas.join('\n'));
+    setIsAiLoading(false);
   };
 
   // Export CSV
@@ -312,7 +337,7 @@ export const ReportsAndAnalytics: React.FC<ReportsAndAnalyticsProps> = ({
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs transition-all shadow-lg shadow-purple-600/20 disabled:opacity-50"
           >
             <Sparkles className="w-4 h-4 text-amber-300" />
-            <span>{isAiLoading ? 'Analizando con IA...' : 'Resumen Clínico IA'}</span>
+            <span>{isAiLoading ? 'Generando resumen...' : 'Resumen de Adherencia'}</span>
           </button>
         </div>
       </div>
@@ -393,7 +418,7 @@ export const ReportsAndAnalytics: React.FC<ReportsAndAnalyticsProps> = ({
         <div className="p-5 rounded-3xl bg-gradient-to-r from-purple-950/40 via-indigo-950/30 to-slate-900 border border-purple-500/30 space-y-3 animate-in fade-in">
           <div className="flex items-center gap-2 text-purple-300 text-sm font-bold">
             <Bot className="w-5 h-5 text-purple-400" />
-            <span>Resumen y Dictamen Clínico de IA Gemini</span>
+            <span>Resumen de Adherencia del Paciente</span>
           </div>
           <div className="text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-line bg-slate-950/40 p-4 rounded-2xl border border-purple-500/20">
             {aiSummary}

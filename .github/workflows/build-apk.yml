@@ -1,0 +1,63 @@
+name: Compilar APK de Android
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, android-local]
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Revisar tipos
+        run: npm run lint
+
+      - name: Compilar la app web y sincronizar con Android
+        run: npm run cap:sync
+
+      - name: Preparar llave de firma (si existe en Secrets)
+        if: env.HAS_KEYSTORE == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/medicontrol.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/medicontrol.jks" >> "$GITHUB_ENV"
+          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+
+      - name: Compilar APK firmado (release)
+        if: env.HAS_KEYSTORE == 'true'
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Compilar APK de prueba (debug, sin firma propia)
+        if: env.HAS_KEYSTORE != 'true'
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Publicar el APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediControl-APK
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

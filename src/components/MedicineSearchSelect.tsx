@@ -1,3 +1,4 @@
+import { hasLowStock } from '../services/stockUtils';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Medicine } from '../types';
 import { QuickAddMedicineModal } from './QuickAddMedicineModal';
@@ -365,7 +366,7 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
 
                         {groupedMedicines[letter].map((med) => {
                           const isSelected = med.id === selectedMedicineId;
-                          const isLowStock = med.stockActual <= med.stockMinimoAlerta;
+                          const isLowStock = hasLowStock(med);
 
                           return (
                             <button
