@@ -23,7 +23,8 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - uses: android-actions/setup-android@v3
+      - name: Dar permiso de ejecucion a Gradle
+        run: chmod +x android/gradlew
 
       - name: Instalar dependencias
         run: npm ci
