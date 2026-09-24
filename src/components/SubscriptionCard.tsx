@@ -18,13 +18,13 @@ export const SubscriptionCard: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-        <CalendarClock className="w-4 h-4 text-emerald-400" />
+      <h4 className="text-xs font-bold text-coffee-500 uppercase tracking-wider flex items-center gap-1.5">
+        <CalendarClock className="w-4 h-4 text-terracotta-400" />
         Mensualidad
       </h4>
 
-      <div className="p-3 rounded-xl bg-slate-800/50 border border-slate-700/70 space-y-2">
-        <label className="block text-[11px] text-slate-400">Tu nombre o clínica</label>
+      <div className="p-3 rounded-xl bg-cream-200/50 border border-coffee-200/70 space-y-2">
+        <label className="block text-[11px] text-coffee-500">Tu nombre o clínica</label>
         <input
           value={name}
           onChange={e => setName(e.target.value)}
@@ -33,9 +33,9 @@ export const SubscriptionCard: React.FC = () => {
             refresh();
           }}
           placeholder="Ej. Enf. Ana López"
-          className="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white placeholder:text-slate-500"
+          className="w-full rounded-lg bg-cream-100 border border-coffee-200 px-3 py-2 text-sm text-coffee-900 placeholder:text-coffee-400"
         />
-        <p className={`text-xs ${vencido ? 'text-amber-300' : 'text-slate-300'}`}>
+        <p className={`text-xs ${vencido ? 'text-amber-700' : 'text-coffee-600'}`}>
           {vencido
             ? `Venció el ${formatDMY(state.venceEl)} (hace ${Math.abs(diasRestantes)} ${Math.abs(diasRestantes) === 1 ? 'día' : 'días'}).`
             : `Próximo pago: ${formatDMY(state.venceEl)} (en ${diasRestantes} ${diasRestantes === 1 ? 'día' : 'días'}).`}
@@ -49,7 +49,7 @@ export const SubscriptionCard: React.FC = () => {
             setAccountName(name);
             await sendRenewalRequest();
           }}
-          className="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5"
+          className="px-3 py-2 rounded-xl bg-terracotta-500 hover:bg-terracotta-400 text-white font-bold text-xs flex items-center gap-1.5"
         >
           <MessageCircle className="w-4 h-4" />
           Avisar por WhatsApp
@@ -62,12 +62,12 @@ export const SubscriptionCard: React.FC = () => {
             markAsPaid();
             refresh();
           }}
-          className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold text-xs border border-slate-600"
+          className="px-3 py-2 rounded-xl bg-cream-200 hover:bg-coffee-200 text-coffee-800 font-semibold text-xs border border-coffee-300"
         >
           Ya pagué
         </button>
       </div>
-      <p className="text-[11px] text-slate-500">La app nunca se bloquea por falta de pago.</p>
+      <p className="text-[11px] text-coffee-400">La app nunca se bloquea por falta de pago.</p>
     </div>
   );
 };

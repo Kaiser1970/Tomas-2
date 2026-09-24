@@ -2,7 +2,7 @@
  * Avatares generados localmente (SVG en data URI) para funcionar sin internet.
  */
 
-const COLORS = ['#10b981', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ec4899', '#14b8a6'];
+const COLORS = ['#C9713D', '#B08D57', '#8A9A5B', '#5B7C8D', '#A65D57', '#6B4F35'];
 
 const toDataUri = (svg: string) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 

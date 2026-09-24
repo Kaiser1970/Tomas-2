@@ -130,23 +130,23 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
       onKeyDown={handleKeyDown}
     >
       <div
-        className="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-lg max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-cream-100 border border-coffee-200/80 rounded-3xl w-full max-w-lg max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/95">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-cream-200 bg-cream-100/95">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            <div className="p-2.5 rounded-2xl bg-terracotta-500/15 text-terracotta-400 border border-terracotta-500/30">
               <Pill className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <h3 className="text-base font-bold text-coffee-900 flex items-center gap-2">
                 <span>Alta Rápida de Medicamento</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-normal">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-terracotta-500/20 text-terracotta-800 font-normal">
                   Al instante
                 </span>
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-coffee-500">
                 Se agregará al catálogo general y se seleccionará en tu receta
               </p>
             </div>
@@ -157,7 +157,7 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
               e.stopPropagation();
               onClose();
             }}
-            className="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800/60 hover:bg-slate-800 transition-colors"
+            className="p-2 text-coffee-500 hover:text-coffee-900 rounded-xl bg-cream-200/60 hover:bg-cream-200 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -166,14 +166,14 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
         {/* Content Body (No nested form to prevent bubbling issues) */}
         <div className="p-6 overflow-y-auto space-y-4">
           {validationError && (
-            <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold">
+            <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-800 text-xs font-semibold">
               {validationError}
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-coffee-600 mb-1">
                 Nombre Comercial *
               </label>
               <input
@@ -186,12 +186,12 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
                   if (validationError) setValidationError('');
                 }}
                 placeholder="Ej. Tempra, Losartán, Amoxicilina"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs placeholder:text-coffee-400 focus:outline-none focus:border-terracotta-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-coffee-600 mb-1">
                 Sustancia Activa (Genérico)
               </label>
               <input
@@ -199,20 +199,20 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
                 value={sustanciaActiva}
                 onChange={(e) => setSustanciaActiva(e.target.value)}
                 placeholder="Ej. Paracetamol, Losartán Potásico"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs placeholder:text-coffee-400 focus:outline-none focus:border-terracotta-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-coffee-600 mb-1">
                 Presentación Farmacéutica *
               </label>
               <select
                 value={presentacion}
                 onChange={(e) => handlePresentationChange(e.target.value as MedicinePresentation)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs focus:outline-none focus:border-terracotta-500"
               >
                 {PRESENTATIONS.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -223,7 +223,7 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-coffee-600 mb-1">
                 Concentración *
               </label>
               <input
@@ -232,14 +232,14 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
                 value={concentracion}
                 onChange={(e) => setConcentracion(e.target.value)}
                 placeholder="Ej. 500 mg, 10 mg/5 ml, 100 mcg"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs placeholder:text-coffee-400 focus:outline-none focus:border-terracotta-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3 pt-1">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-coffee-600 mb-1">
                 Stock Inicial
               </label>
               <input
@@ -247,12 +247,12 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
                 min="0"
                 value={stockActual}
                 onChange={(e) => setStockActual(parseInt(e.target.value, 10) || 0)}
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-mono focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-mono focus:outline-none focus:border-terracotta-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-coffee-600 mb-1">
                 Alerta Mínimo
               </label>
               <input
@@ -260,12 +260,12 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
                 min="1"
                 value={stockMinimoAlerta}
                 onChange={(e) => setStockMinimoAlerta(parseInt(e.target.value, 10) || 1)}
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-mono focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-mono focus:outline-none focus:border-terracotta-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-coffee-600 mb-1">
                 Unidad
               </label>
               <input
@@ -273,14 +273,14 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
                 value={unidadMedida}
                 onChange={(e) => setUnidadMedida(e.target.value)}
                 placeholder="tabletas, ml"
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs focus:outline-none focus:border-terracotta-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-coffee-600 mb-1">
                 Laboratorio / Marca (Opcional)
               </label>
               <input
@@ -288,12 +288,12 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
                 value={laboratorio}
                 onChange={(e) => setLaboratorio(e.target.value)}
                 placeholder="Ej. Bayer, Pfizer, Genérico"
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs placeholder:text-coffee-400 focus:outline-none focus:border-terracotta-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-coffee-600 mb-1">
                 Indicaciones Generales (Opcional)
               </label>
               <input
@@ -301,27 +301,27 @@ export const QuickAddMedicineModal: React.FC<QuickAddMedicineModalProps> = ({
                 value={instruccionesGenerales}
                 onChange={(e) => setInstruccionesGenerales(e.target.value)}
                 placeholder="Ej. Tomar con abundante agua"
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs placeholder:text-coffee-400 focus:outline-none focus:border-terracotta-500"
               />
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800 mt-4">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-cream-200 mt-4">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onClose();
               }}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
+              className="px-4 py-2.5 rounded-xl bg-cream-200 hover:bg-coffee-200 text-coffee-600 text-xs font-semibold transition-colors"
             >
               Cancelar
             </button>
             <button
               type="button"
               onClick={(e) => handleSave(e)}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-terracotta-500 to-terracotta-600 hover:from-terracotta-400 hover:to-terracotta-500 text-white text-xs font-bold shadow-lg shadow-terracotta-500/20 transition-all flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
               <span>Guardar y Seleccionar</span>

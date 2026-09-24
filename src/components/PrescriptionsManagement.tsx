@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Prescription, 
   PrescriptionMedicineItem, 
@@ -36,7 +36,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   CalendarDays,
-  Hash
+  Hash,
+  Pencil
 } from 'lucide-react';
 
 interface PrescriptionsManagementProps {
@@ -75,6 +76,9 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
   const [filterPatient, setFilterPatient] = useState<string>(activePatientId);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
+  const itemRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [viewAttachmentUrl, setViewAttachmentUrl] = useState<string | null>(null);
 
   // Form State
@@ -123,6 +127,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
 
   const handleOpenAdd = () => {
     const today = getTodayDateString();
+    setEditingId(null);
     setPacienteId(activePatientId);
     setDoctorId(doctors[0]?.id || '');
     setFechaEmision(today);
@@ -130,6 +135,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
     setFormError(null);
     setDuplicateWarnings({});
     setCustomHours({});
+    setHighlightedItemId(null);
     setArchivoAdjuntoUrl('');
     setFormMeds([
       {
@@ -150,13 +156,34 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
     setShowModal(true);
   };
 
+  const handleOpenEdit = (prescription: Prescription) => {
+    setEditingId(prescription.id);
+    setPacienteId(prescription.pacienteId);
+    setDoctorId(prescription.doctorId);
+    setFechaEmision(prescription.fechaEmision);
+    setDiagnostico(prescription.diagnostico || '');
+    setArchivoAdjuntoUrl(prescription.archivoAdjuntoUrl || '');
+    setFormError(null);
+    setDuplicateWarnings({});
+    setCustomHours({});
+    setHighlightedItemId(null);
+    // Copia profunda; se conservan los id de cada medicamento para no perder el historial de tomas
+    setFormMeds(JSON.parse(JSON.stringify(prescription.medicamentos)));
+    setShowModal(true);
+  };
+
   const handleAddMedItem = () => {
     const today = getTodayDateString();
+    // Evita agregar por accidente el mismo medicamento ya elegido en otro renglón:
+    // se busca el primer medicamento del catálogo que aún no esté en la receta.
+    const usedIds = new Set(formMeds.map(m => m.medicamentoId));
+    const nextMedicine = sortedMedicines.find(m => !usedIds.has(m.id)) || sortedMedicines[0] || medicines[0];
+    const newItemId = `item-${Date.now()}-${Math.random()}`;
     setFormMeds([
       ...formMeds,
       {
-        id: `item-${Date.now()}-${Math.random()}`,
-        medicamentoId: sortedMedicines[0]?.id || medicines[0]?.id || '',
+        id: newItemId,
+        medicamentoId: nextMedicine?.id || '',
         dosisCantidad: 1,
         unidadDosis: 'tableta',
         viaAdministracion: 'oral',
@@ -169,7 +196,20 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
         horasFijas: ['08:00']
       }
     ]);
+    // Resalta y desplaza la vista hasta el nuevo renglón para que sea evidente que sí se agregó
+    setHighlightedItemId(newItemId);
   };
+
+  // Al agregar un medicamento, lleva la vista hasta el nuevo renglón y lo resalta unos segundos
+  useEffect(() => {
+    if (!highlightedItemId) return;
+    const el = itemRefs.current[highlightedItemId];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    const timer = setTimeout(() => setHighlightedItemId(null), 1800);
+    return () => clearTimeout(timer);
+  }, [highlightedItemId]);
 
   const handleRemoveMedItem = (index: number) => {
     if (formMeds.length <= 1) return;
@@ -309,8 +349,10 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
       return finalItem;
     });
 
+    const existing = editingId ? prescriptions.find(p => p.id === editingId) : undefined;
+
     const newPrescription: Prescription = {
-      id: `rec-${Date.now()}`,
+      id: existing ? existing.id : `rec-${Date.now()}`,
       pacienteId,
       doctorId,
       fechaEmision,
@@ -319,10 +361,15 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
       archivoAdjuntoUrl: archivoAdjuntoUrl.trim() || undefined,
       medicamentos: sanitizedMeds,
       activo: true,
-      creadoEn: new Date().toISOString()
+      creadoEn: existing ? existing.creadoEn : new Date().toISOString()
     };
 
-    onAddPrescription(newPrescription);
+    if (existing) {
+      onUpdatePrescription(newPrescription);
+    } else {
+      onAddPrescription(newPrescription);
+    }
+    setEditingId(null);
     setShowModal(false);
   };
 
@@ -331,18 +378,18 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <FileText className="w-6 h-6 text-emerald-400" />
+          <h2 className="text-xl font-bold text-coffee-900 flex items-center gap-2">
+            <FileText className="w-6 h-6 text-terracotta-400" />
             Gestión de Recetas Médicas
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-coffee-500">
             Vinculación de paciente, médico, medicamentos y reglas de horario de tomas
           </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs hover:opacity-95 transition-opacity shadow-lg shadow-emerald-500/20"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-terracotta-500 to-terracotta-600 text-white font-black text-xs hover:opacity-95 transition-opacity shadow-lg shadow-terracotta-500/20"
         >
           <Plus className="w-4 h-4" />
           <span>Nueva Receta Médica</span>
@@ -350,14 +397,14 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 p-4 rounded-2xl bg-slate-900 border border-slate-800">
+      <div className="flex flex-wrap items-center gap-3 p-4 rounded-2xl bg-cream-100 border border-cream-200">
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-emerald-400" />
-          <span className="text-xs text-slate-400 font-semibold">Filtrar por Paciente:</span>
+          <User className="w-4 h-4 text-terracotta-400" />
+          <span className="text-xs text-coffee-500 font-semibold">Filtrar por Paciente:</span>
           <select
             value={filterPatient}
             onChange={(e) => setFilterPatient(e.target.value)}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+            className="px-3 py-1.5 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs focus:outline-none focus:border-terracotta-500"
           >
             <option value="all">Todos los pacientes</option>
             {patients.filter(p => p.activo).map(p => (
@@ -367,11 +414,11 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 font-semibold">Estado:</span>
+          <span className="text-xs text-coffee-500 font-semibold">Estado:</span>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+            className="px-3 py-1.5 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs focus:outline-none focus:border-terracotta-500"
           >
             <option value="all">Todas las recetas</option>
             <option value="activa">Activas</option>
@@ -384,10 +431,10 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
       {/* Prescriptions List */}
       <div className="space-y-4">
         {filtered.length === 0 ? (
-          <div className="text-center py-12 rounded-3xl bg-slate-900/60 border border-slate-800 space-y-2">
-            <FileText className="w-10 h-10 text-slate-500 mx-auto" />
-            <h4 className="text-sm font-bold text-white">No hay recetas que coincidan con el filtro</h4>
-            <p className="text-xs text-slate-400">Prueba cambiando el paciente o añadiendo una nueva receta.</p>
+          <div className="text-center py-12 rounded-3xl bg-cream-100/60 border border-cream-200 space-y-2">
+            <FileText className="w-10 h-10 text-coffee-400 mx-auto" />
+            <h4 className="text-sm font-bold text-coffee-900">No hay recetas que coincidan con el filtro</h4>
+            <p className="text-xs text-coffee-500">Prueba cambiando el paciente o añadiendo una nueva receta.</p>
           </div>
         ) : (
           filtered.map((prescription) => {
@@ -397,29 +444,29 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
             return (
               <div
                 key={prescription.id}
-                className="p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all space-y-4"
+                className="p-5 sm:p-6 rounded-3xl bg-cream-100 border border-cream-200 hover:border-coffee-200 transition-all space-y-4"
               >
                 {/* Header info */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-cream-200">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <div className="p-2.5 rounded-2xl bg-terracotta-500/10 text-terracotta-400 border border-terracotta-500/20">
                       <FileText className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-white">
+                        <h3 className="text-base font-bold text-coffee-900">
                           Receta #{prescription.id.slice(-6).toUpperCase()}
                         </h3>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
                           prescription.estado === 'activa'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-slate-800 text-slate-400'
+                            ? 'bg-emerald-500/20 text-emerald-800 border border-emerald-500/30'
+                            : 'bg-cream-200 text-coffee-500'
                         }`}>
                           {prescription.estado}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-                        <span>Paciente: <strong className="text-slate-200">{patient?.nombre || 'Desconocido'}</strong></span>
+                      <p className="text-xs text-coffee-500 flex items-center gap-2 mt-0.5">
+                        <span>Paciente: <strong className="text-coffee-700">{patient?.nombre || 'Desconocido'}</strong></span>
                         <span>•</span>
                         <span>Emitida: <span className="font-mono">{prescription.fechaEmision}</span></span>
                       </p>
@@ -430,19 +477,27 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                     {prescription.archivoAdjuntoUrl && (
                       <button
                         onClick={() => setViewAttachmentUrl(prescription.archivoAdjuntoUrl!)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cream-200 hover:bg-coffee-200 text-coffee-600 hover:text-coffee-900 text-xs font-semibold border border-coffee-200 transition-colors"
                       >
-                        <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                        <Eye className="w-3.5 h-3.5 text-terracotta-400" />
                         <span>Ver Receta Física</span>
                       </button>
                     )}
+                    <button
+                      onClick={() => handleOpenEdit(prescription)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cream-200 hover:bg-coffee-200 text-coffee-600 hover:text-coffee-900 text-xs font-semibold border border-coffee-200 transition-colors"
+                      title="Editar receta"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-terracotta-400" />
+                      <span>Editar</span>
+                    </button>
                     <button
                       onClick={() => {
                         if (confirm('¿Dar de baja esta receta?')) {
                           onDeletePrescription(prescription.id);
                         }
                       }}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-400 transition-colors"
+                      className="p-1.5 rounded-lg bg-cream-200 hover:bg-rose-950 text-coffee-500 hover:text-rose-400 transition-colors"
                       title="Eliminar receta"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -451,25 +506,25 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                 </div>
 
                 {/* Doctor & Diagnosis */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-slate-800/40 p-3 rounded-2xl border border-slate-800">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-cream-200/40 p-3 rounded-2xl border border-cream-200">
                   <div className="flex items-center gap-2">
-                    <Stethoscope className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <Stethoscope className="w-4 h-4 text-terracotta-400 shrink-0" />
                     <div>
-                      <span className="text-slate-400">Médico Tratante:</span>
-                      <p className="font-bold text-white">{doctor?.nombre} ({doctor?.especialidad})</p>
+                      <span className="text-coffee-500">Médico Tratante:</span>
+                      <p className="font-bold text-coffee-900">{doctor?.nombre} ({doctor?.especialidad})</p>
                     </div>
                   </div>
                   {prescription.diagnostico && (
                     <div>
-                      <span className="text-slate-400">Diagnóstico / Motivo:</span>
-                      <p className="font-medium text-slate-200">{prescription.diagnostico}</p>
+                      <span className="text-coffee-500">Diagnóstico / Motivo:</span>
+                      <p className="font-medium text-coffee-700">{prescription.diagnostico}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Prescribed Medicines in this Recipe */}
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                  <span className="text-xs font-bold text-coffee-500 uppercase tracking-wider block">
                     Medicamentos y Horarios Prescritos ({prescription.medicamentos.length}):
                   </span>
 
@@ -495,21 +550,21 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                       return (
                         <div
                           key={item.id}
-                          className="p-4 rounded-2xl bg-slate-800/70 border border-slate-700/70 space-y-3 text-xs"
+                          className="p-4 rounded-2xl bg-cream-200/70 border border-coffee-200/70 space-y-3 text-xs"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2">
-                              <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              <div className="p-1.5 rounded-lg bg-terracotta-500/10 text-terracotta-400 border border-terracotta-500/20">
                                 <Pill className="w-4 h-4" />
                               </div>
                               <div>
-                                <strong className="text-white text-sm block">{med?.nombreComercial}</strong>
-                                <p className="text-[11px] text-slate-400">
+                                <strong className="text-coffee-900 text-sm block">{med?.nombreComercial}</strong>
+                                <p className="text-[11px] text-coffee-500">
                                   {med?.sustanciaActiva} {med?.concentracion} • Vía {item.viaAdministracion}
                                 </p>
                               </div>
                             </div>
-                            <span className="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-mono font-bold shrink-0">
+                            <span className="px-2.5 py-1 rounded-xl bg-cream-100 border border-coffee-200 text-coffee-700 font-mono font-bold shrink-0">
                               {item.dosisCantidad} {item.unidadDosis}
                             </span>
                           </div>
@@ -517,35 +572,35 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                           {/* Treatment Progression & Duration Status Control */}
                           <div className={`p-3 rounded-xl border space-y-2 ${
                             item.esIndefinido
-                              ? 'bg-blue-950/20 border-blue-500/30'
+                              ? 'bg-blue-100 border-blue-500/30'
                               : progress.estadoTratamiento === 'finalizado'
-                              ? 'bg-slate-900/80 border-slate-700/60'
+                              ? 'bg-cream-100/80 border-coffee-200/60'
                               : progress.estadoTratamiento === 'ultimo_dia'
-                              ? 'bg-amber-950/30 border-amber-500/40'
-                              : 'bg-emerald-950/20 border-emerald-500/30'
+                              ? 'bg-amber-100 border-amber-500/40'
+                              : 'bg-emerald-100 border-emerald-500/30'
                           }`}>
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-[11px] font-bold flex items-center gap-1.5">
                                 <CalendarDays className="w-3.5 h-3.5" />
                                 {item.esIndefinido ? (
-                                  <span className="text-blue-300">Tratamiento Continuo</span>
+                                  <span className="text-blue-700">Tratamiento Continuo</span>
                                 ) : progress.estadoTratamiento === 'finalizado' ? (
-                                  <span className="text-slate-400">Tratamiento Concluido</span>
+                                  <span className="text-coffee-500">Tratamiento Concluido</span>
                                 ) : progress.estadoTratamiento === 'ultimo_dia' ? (
-                                  <span className="text-amber-300 font-black">¡Último Día de Toma Hoy!</span>
+                                  <span className="text-amber-800 font-black">¡Último Día de Toma Hoy!</span>
                                 ) : (
-                                  <span className="text-emerald-300">Control de Duración</span>
+                                  <span className="text-emerald-700">Control de Duración</span>
                                 )}
                               </span>
                               
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 item.esIndefinido
-                                  ? 'bg-blue-500/20 text-blue-300'
+                                  ? 'bg-blue-500/20 text-blue-800'
                                   : progress.estadoTratamiento === 'finalizado'
-                                  ? 'bg-slate-700 text-slate-300'
+                                  ? 'bg-coffee-200 text-coffee-600'
                                   : progress.estadoTratamiento === 'ultimo_dia'
-                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse'
-                                  : 'bg-emerald-500/20 text-emerald-300'
+                                  ? 'bg-amber-500/20 text-amber-800 border border-amber-500/30 animate-pulse'
+                                  : 'bg-emerald-500/20 text-emerald-800'
                               }`}>
                                 {progress.textoProgreso}
                               </span>
@@ -554,11 +609,11 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                             {/* Progress bar for defined treatments */}
                             {!item.esIndefinido && progress.totalDias > 0 && (
                               <div className="space-y-1">
-                                <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                                <div className="w-full bg-cream-50 rounded-full h-2 overflow-hidden border border-cream-200">
                                   <div
                                     className={`h-full rounded-full transition-all duration-500 ${
                                       progress.estadoTratamiento === 'finalizado'
-                                        ? 'bg-slate-500'
+                                        ? 'bg-coffee-400'
                                         : progress.estadoTratamiento === 'ultimo_dia'
                                         ? 'bg-amber-400'
                                         : 'bg-emerald-400'
@@ -566,9 +621,9 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                                     style={{ width: `${progress.porcentajeProgreso}%` }}
                                   />
                                 </div>
-                                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+                                <div className="flex items-center justify-between text-[10px] text-coffee-500 pt-0.5">
                                   <span>Inició: {item.fechaInicio}</span>
-                                  <span className="font-semibold text-slate-300">
+                                  <span className="font-semibold text-coffee-600">
                                     {progress.diaActual} de {progress.totalDias} días ({progress.porcentajeProgreso}%)
                                   </span>
                                   <span>Término: {item.fechaFin}</span>
@@ -577,23 +632,23 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                             )}
 
                             {/* Doses and count calculations */}
-                            <div className="flex flex-wrap items-center justify-between gap-1 pt-1 text-[11px] border-t border-slate-800/80 text-slate-300">
+                            <div className="flex flex-wrap items-center justify-between gap-1 pt-1 text-[11px] border-t border-cream-200/80 text-coffee-600">
                               <span className="flex items-center gap-1 font-mono">
                                 <Hash className="w-3 h-3 text-emerald-400" />
                                 <strong>{dailyDosesCount}</strong> toma{dailyDosesCount !== 1 ? 's' : ''}/día
                               </span>
                               {totalTreatmentDoses && (
-                                <span className="text-[10px] text-slate-400">
-                                  Total tratam.: <strong className="text-emerald-300 font-mono">{totalTreatmentDoses} dosis</strong>
+                                <span className="text-[10px] text-coffee-500">
+                                  Total tratam.: <strong className="text-emerald-700 font-mono">{totalTreatmentDoses} dosis</strong>
                                 </span>
                               )}
                             </div>
                           </div>
 
                           {/* Pattern & Scheduled Hours Chips */}
-                          <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
-                            <div className="flex items-center justify-between text-[11px] text-slate-400">
-                              <span className="flex items-center gap-1 font-semibold text-emerald-300">
+                          <div className="p-2.5 rounded-xl bg-cream-100 border border-cream-200 space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px] text-coffee-500">
+                              <span className="flex items-center gap-1 font-semibold text-terracotta-700">
                                 <Clock className="w-3 h-3" />
                                 {item.patronHorario === 'hora_fija' && 'Horas Fijas Asignadas (Sin duplicados):'}
                                 {item.patronHorario === 'cada_x_horas' && `Intervalo Cada ${item.intervaloHoras} horas:`}
@@ -606,13 +661,13 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                             <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                               {item.patronHorario === 'cada_x_horas' ? (
                                 generateHoursEveryX(item.horaInicioIntervalo, item.intervaloHoras).map((h, i) => (
-                                  <span key={i} className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono text-[11px] font-bold border border-emerald-500/30">
+                                  <span key={i} className="px-2 py-0.5 rounded-lg bg-terracotta-500/20 text-terracotta-800 font-mono text-[11px] font-bold border border-terracotta-500/30">
                                     {h}
                                   </span>
                                 ))
                               ) : item.horasFijas ? (
                                 item.horasFijas.map((h, i) => (
-                                  <span key={i} className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono text-[11px] font-bold border border-emerald-500/30">
+                                  <span key={i} className="px-2 py-0.5 rounded-lg bg-terracotta-500/20 text-terracotta-800 font-mono text-[11px] font-bold border border-terracotta-500/30">
                                     {h}
                                   </span>
                                 ))
@@ -621,7 +676,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                           </div>
 
                           {item.indicaciones && (
-                            <p className="text-emerald-400 text-[11px] italic bg-emerald-950/20 p-2 rounded-xl border border-emerald-500/20">
+                            <p className="text-terracotta-400 text-[11px] italic bg-terracotta-100/20 p-2 rounded-xl border border-terracotta-500/20">
                               💡 "{item.indicaciones}"
                             </p>
                           )}
@@ -639,17 +694,17 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
       {/* New Prescription Wizard Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/90">
+          <div className="bg-cream-100 border border-cream-200 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-cream-200 bg-cream-100/90">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <div className="p-2 rounded-xl bg-terracotta-500/10 text-terracotta-400 border border-terracotta-500/20">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h3 className="text-base font-bold text-white">
-                  Alta de Receta Médica y Programación de Horarios
+                <h3 className="text-base font-bold text-coffee-900">
+                  {editingId ? 'Editar Receta Médica y Horarios' : 'Alta de Receta Médica y Programación de Horarios'}
                 </h3>
               </div>
-              <button onClick={() => setShowModal(false)} className="p-1.5 text-slate-400 hover:text-white rounded-lg">
+              <button onClick={() => setShowModal(false)} className="p-1.5 text-coffee-500 hover:text-coffee-900 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -657,7 +712,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
             <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6">
               {/* Form Global Error Banner */}
               {formError && (
-                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2 animate-in fade-in">
+                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-800 text-xs flex items-start gap-2 animate-in fade-in">
                   <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                   <div>
                     <strong className="font-bold block">No se pudo guardar la receta</strong>
@@ -669,13 +724,13 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
               {/* Patient & Doctor Selection */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-coffee-600 mb-1">
                     Paciente *
                   </label>
                   <select
                     value={pacienteId}
                     onChange={(e) => setPacienteId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs focus:outline-none focus:border-terracotta-500"
                     required
                   >
                     {patients.filter(p => p.activo).map(p => (
@@ -685,13 +740,13 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-coffee-600 mb-1">
                     Doctor Tratante *
                   </label>
                   <select
                     value={doctorId}
                     onChange={(e) => setDoctorId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs focus:outline-none focus:border-terracotta-500"
                     required
                   >
                     {doctors.filter(d => d.activo).map(d => (
@@ -701,21 +756,21 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-coffee-600 mb-1">
                     Fecha de Emisión *
                   </label>
                   <input
                     type="date"
                     value={fechaEmision}
                     onChange={(e) => setFechaEmision(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500 font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs focus:outline-none focus:border-terracotta-500 font-mono"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-coffee-600 mb-1">
                   Diagnóstico o Indicación Principal
                 </label>
                 <input
@@ -723,21 +778,21 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                   value={diagnostico}
                   onChange={(e) => setDiagnostico(e.target.value)}
                   placeholder="Ej. Hipertensión esencial, Tratamiento antibiótico posoperatorio..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs focus:outline-none focus:border-terracotta-500"
                 />
               </div>
 
               {/* Medicine Items in Recipe */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-emerald-400 flex items-center gap-1.5">
+                  <h4 className="text-sm font-bold text-terracotta-400 flex items-center gap-1.5">
                     <Pill className="w-4 h-4" />
                     Medicamentos, Horarios y Control de Días
                   </h4>
                   <button
                     type="button"
                     onClick={handleAddMedItem}
-                    className="flex items-center gap-1 text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/30"
+                    className="flex items-center gap-1 text-xs font-bold text-terracotta-400 hover:text-terracotta-800 bg-terracotta-500/10 px-3 py-1.5 rounded-xl border border-terracotta-500/30"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Añadir otro medicamento
@@ -755,14 +810,21 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                     ? dailyDosesCount * medItem.duracionDias
                     : null;
 
+                  const isHighlighted = medItem.id === highlightedItemId;
+
                   return (
                     <div
                       key={medItem.id}
-                      className="p-4 rounded-2xl bg-slate-800/40 border border-slate-800 space-y-4"
+                      ref={(el) => { itemRefs.current[medItem.id] = el; }}
+                      className={`p-4 rounded-2xl bg-cream-200/40 border space-y-4 transition-colors duration-500 ${
+                        isHighlighted
+                          ? 'border-terracotta-400 ring-2 ring-terracotta-400/50'
+                          : 'border-cream-200'
+                      }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                          <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[11px] font-mono">
+                        <span className="text-xs font-bold text-coffee-600 flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-terracotta-500/20 text-terracotta-400 flex items-center justify-center text-[11px] font-mono">
                             #{idx + 1}
                           </span>
                           Medicamento Prescrito
@@ -771,7 +833,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                           <button
                             type="button"
                             onClick={() => handleRemoveMedItem(idx)}
-                            className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1"
+                            className="text-xs text-rose-400 hover:text-rose-700 flex items-center gap-1"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             Eliminar
@@ -792,34 +854,34 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Dosis Cantidad</label>
+                              <label className="block text-[11px] font-semibold text-coffee-500 mb-1">Dosis Cantidad</label>
                               <input
                                 type="number"
                                 min="0.5"
                                 step="0.5"
                                 value={medItem.dosisCantidad}
                                 onChange={(e) => handleUpdateMedItem(idx, { dosisCantidad: parseFloat(e.target.value) || 1 })}
-                                className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-mono"
+                                className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-mono"
                               />
                             </div>
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Unidad</label>
+                              <label className="block text-[11px] font-semibold text-coffee-500 mb-1">Unidad</label>
                               <input
                                 type="text"
                                 value={medItem.unidadDosis}
                                 onChange={(e) => handleUpdateMedItem(idx, { unidadDosis: e.target.value })}
                                 placeholder="tableta, ml, puff"
-                                className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs"
+                                className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs"
                               />
                             </div>
                           </div>
 
                           <div>
-                            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Vía de Adm.</label>
+                            <label className="block text-[11px] font-semibold text-coffee-500 mb-1">Vía de Adm.</label>
                             <select
                               value={medItem.viaAdministracion}
                               onChange={(e) => handleUpdateMedItem(idx, { viaAdministracion: e.target.value as AdministrationRoute })}
-                              className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs capitalize"
+                              className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs capitalize"
                             >
                               <option value="oral">Oral</option>
                               <option value="topica">Tópica</option>
@@ -834,16 +896,16 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                       </div>
 
                       {/* Schedule Pattern Selector & Anti-Duplicate Hours Management */}
-                      <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+                      <div className="p-3.5 rounded-2xl bg-cream-100 border border-cream-200 space-y-3">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-terracotta-400 flex items-center gap-1.5">
                             <Clock className="w-3.5 h-3.5" />
                             Horarios de las Tomas (Sin Duplicados)
                           </span>
                           <select
                             value={medItem.patronHorario}
                             onChange={(e) => handleUpdateMedItem(idx, { patronHorario: e.target.value as SchedulePattern })}
-                            className="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-semibold focus:outline-none focus:border-emerald-500"
+                            className="px-3 py-1.5 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-semibold focus:outline-none focus:border-terracotta-500"
                           >
                             <option value="hora_fija">Por horas fijas (ej. 08:00, 20:00)</option>
                             <option value="cada_x_horas">Cada X horas (ej. cada 8 horas)</option>
@@ -854,7 +916,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
 
                         {/* Inline Warning for Duplicates */}
                         {duplicateWarnings[idx] && (
-                          <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2">
+                          <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-800 text-xs flex items-start gap-2">
                             <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                             <span>{duplicateWarnings[idx]}</span>
                           </div>
@@ -865,10 +927,10 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                           <div className="space-y-3">
                             <div>
                               <div className="flex items-center justify-between mb-1.5">
-                                <label className="text-[11px] text-slate-400">
+                                <label className="text-[11px] text-coffee-500">
                                   Horas de toma asignadas ({medItem.horasFijas?.length || 0} tomas al día):
                                 </label>
-                                <span className="text-[10px] text-emerald-400 font-mono font-semibold">
+                                <span className="text-[10px] text-terracotta-400 font-mono font-semibold">
                                   ✓ Validación anti-duplicados activa
                                 </span>
                               </div>
@@ -877,14 +939,14 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                                 {(medItem.horasFijas || ['08:00']).map((h, hIdx) => (
                                   <div
                                     key={hIdx}
-                                    className="flex items-center gap-1.5 bg-slate-800 px-3 py-1 rounded-xl border border-emerald-500/30 font-mono text-xs text-white"
+                                    className="flex items-center gap-1.5 bg-cream-200 px-3 py-1 rounded-xl border border-terracotta-500/30 font-mono text-xs text-coffee-900"
                                   >
-                                    <Clock className="w-3 h-3 text-emerald-400" />
+                                    <Clock className="w-3 h-3 text-terracotta-400" />
                                     <span className="font-bold">{h}</span>
                                     <button
                                       type="button"
                                       onClick={() => handleRemoveHourFromItem(idx, h)}
-                                      className="text-slate-400 hover:text-rose-400 ml-1 font-bold text-sm leading-none"
+                                      className="text-coffee-500 hover:text-rose-400 ml-1 font-bold text-sm leading-none"
                                       title="Eliminar este horario"
                                     >
                                       ×
@@ -895,14 +957,14 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                             </div>
 
                             {/* Add Custom Hour Form & Quick Preset Chips */}
-                            <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+                            <div className="p-2.5 rounded-xl bg-cream-50/60 border border-cream-200 space-y-2">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-[11px] text-slate-400">Añadir hora personalizada:</span>
+                                <span className="text-[11px] text-coffee-500">Añadir hora personalizada:</span>
                                 <input
                                   type="time"
                                   value={customHours[idx] || ''}
                                   onChange={(e) => setCustomHours({ ...customHours, [idx]: e.target.value })}
-                                  className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs font-mono"
+                                  className="px-2.5 py-1 rounded-lg bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-mono"
                                 />
                                 <button
                                   type="button"
@@ -911,14 +973,14 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                                       handleAddHourToItem(idx, customHours[idx]);
                                     }
                                   }}
-                                  className="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition-colors"
+                                  className="px-2.5 py-1 rounded-lg bg-terracotta-500 hover:bg-terracotta-400 text-white text-xs font-bold transition-colors"
                                 >
                                   + Agregar
                                 </button>
                               </div>
 
-                              <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-800/80">
-                                <span className="text-[10px] text-slate-500">Horas comunes:</span>
+                              <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-cream-200/80">
+                                <span className="text-[10px] text-coffee-400">Horas comunes:</span>
                                 {['07:00', '08:00', '12:00', '14:00', '18:00', '20:00', '22:00'].map((quickH) => {
                                   const isAlreadyAdded = (medItem.horasFijas || []).includes(quickH);
                                   return (
@@ -929,8 +991,8 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                                       onClick={() => handleAddHourToItem(idx, quickH)}
                                       className={`text-[10px] px-2 py-0.5 rounded-lg font-mono transition-colors ${
                                         isAlreadyAdded
-                                          ? 'bg-slate-800/40 text-slate-600 cursor-not-allowed line-through'
-                                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700'
+                                          ? 'bg-cream-200/40 text-coffee-300 cursor-not-allowed line-through'
+                                          : 'bg-cream-200 hover:bg-coffee-200 text-coffee-600 hover:text-coffee-900 border border-coffee-200'
                                       }`}
                                       title={isAlreadyAdded ? 'Ya asignado' : `Agregar toma a las ${quickH}`}
                                     >
@@ -947,11 +1009,11 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                           <div className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <label className="block text-[11px] text-slate-400 mb-1">Intervalo en Horas</label>
+                                <label className="block text-[11px] text-coffee-500 mb-1">Intervalo en Horas</label>
                                 <select
                                   value={medItem.intervaloHoras || 8}
                                   onChange={(e) => handleUpdateMedItem(idx, { intervaloHoras: parseInt(e.target.value) })}
-                                  className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs"
+                                  className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs"
                                 >
                                   <option value="4">Cada 4 horas (6 tomas/día)</option>
                                   <option value="6">Cada 6 horas (4 tomas/día)</option>
@@ -961,21 +1023,21 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                                 </select>
                               </div>
                               <div>
-                                <label className="block text-[11px] text-slate-400 mb-1">Hora Primera Toma</label>
+                                <label className="block text-[11px] text-coffee-500 mb-1">Hora Primera Toma</label>
                                 <input
                                   type="time"
                                   value={medItem.horaInicioIntervalo || '08:00'}
                                   onChange={(e) => handleUpdateMedItem(idx, { horaInicioIntervalo: e.target.value })}
-                                  className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-mono"
+                                  className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-mono"
                                 />
                               </div>
                             </div>
 
-                            <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                              <span className="text-[10px] text-slate-400 block mb-1">Horarios generados automáticamente en el día:</span>
+                            <div className="p-2.5 rounded-xl bg-cream-50/60 border border-cream-200">
+                              <span className="text-[10px] text-coffee-500 block mb-1">Horarios generados automáticamente en el día:</span>
                               <div className="flex flex-wrap gap-1.5">
                                 {generateHoursEveryX(medItem.horaInicioIntervalo || '08:00', medItem.intervaloHoras || 8).map((h, i) => (
-                                  <span key={i} className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold border border-emerald-500/30">
+                                  <span key={i} className="px-2 py-0.5 rounded-md bg-terracotta-500/20 text-terracotta-800 font-mono text-xs font-bold border border-terracotta-500/30">
                                     {h}
                                   </span>
                                 ))}
@@ -986,7 +1048,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
 
                         {medItem.patronHorario === 'dias_semana' && (
                           <div className="space-y-2">
-                            <label className="block text-[11px] text-slate-400">Selecciona los días activos:</label>
+                            <label className="block text-[11px] text-coffee-500">Selecciona los días activos:</label>
                             <div className="flex items-center gap-1.5">
                               {DAYS_OF_WEEK.map(({ day, label }) => {
                                 const activeDays = medItem.diasSemana || [1, 2, 3, 4, 5];
@@ -1004,8 +1066,8 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                                     }}
                                     className={`w-9 h-8 rounded-lg text-xs font-bold transition-colors ${
                                       isSelected
-                                        ? 'bg-emerald-500 text-slate-950 font-black'
-                                        : 'bg-slate-800 text-slate-400 hover:text-white'
+                                        ? 'bg-terracotta-500 text-white font-black'
+                                        : 'bg-cream-200 text-coffee-500 hover:text-coffee-900'
                                     }`}
                                   >
                                     {label}
@@ -1018,11 +1080,11 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
 
                         {medItem.patronHorario === 'frecuencia_dias' && (
                           <div>
-                            <label className="block text-[11px] text-slate-400 mb-1">Frecuencia cada cuántos días:</label>
+                            <label className="block text-[11px] text-coffee-500 mb-1">Frecuencia cada cuántos días:</label>
                             <select
                               value={medItem.cadaNDias || 2}
                               onChange={(e) => handleUpdateMedItem(idx, { cadaNDias: parseInt(e.target.value) })}
-                              className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs"
+                              className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs"
                             >
                               <option value="2">Cada 2 días (Día por medio)</option>
                               <option value="3">Cada 3 días</option>
@@ -1033,23 +1095,23 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                       </div>
 
                       {/* Treatment Duration & Completion Control (Days Tracker) */}
-                      <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+                      <div className="p-3.5 rounded-2xl bg-cream-100 border border-cream-200 space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-terracotta-400 flex items-center gap-1.5">
                             <CalendarDays className="w-3.5 h-3.5" />
                             Duración del Tratamiento y Control hasta su Término
                           </span>
                         </div>
 
                         {/* Mode Selector Toggle */}
-                        <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+                        <div className="grid grid-cols-2 gap-2 bg-cream-50 p-1 rounded-xl border border-cream-200 text-xs">
                           <button
                             type="button"
                             onClick={() => handleUpdateMedItem(idx, { esIndefinido: false })}
                             className={`py-1.5 px-2 rounded-lg font-semibold transition-all ${
                               !medItem.esIndefinido
-                                ? 'bg-emerald-500 text-slate-950 shadow-md font-bold'
-                                : 'text-slate-400 hover:text-white'
+                                ? 'bg-terracotta-500 text-white shadow-md font-bold'
+                                : 'text-coffee-500 hover:text-coffee-900'
                             }`}
                           >
                             📅 Por Días de Tratamiento
@@ -1059,8 +1121,8 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                             onClick={() => handleUpdateMedItem(idx, { esIndefinido: true })}
                             className={`py-1.5 px-2 rounded-lg font-semibold transition-all ${
                               medItem.esIndefinido
-                                ? 'bg-blue-500 text-slate-950 shadow-md font-bold'
-                                : 'text-slate-400 hover:text-white'
+                                ? 'bg-blue-500 text-white shadow-md font-bold'
+                                : 'text-coffee-500 hover:text-coffee-900'
                             }`}
                           >
                             ♾️ Continuo / Crónico
@@ -1071,20 +1133,20 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                           <div className="space-y-3">
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               <div>
-                                <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                                <label className="block text-[11px] font-semibold text-coffee-500 mb-1">
                                   Fecha de Inicio
                                 </label>
                                 <input
                                   type="date"
                                   value={medItem.fechaInicio}
                                   onChange={(e) => handleUpdateMedItem(idx, { fechaInicio: e.target.value })}
-                                  className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-mono"
+                                  className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-mono"
                                   required
                                 />
                               </div>
 
                               <div>
-                                <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                                <label className="block text-[11px] font-semibold text-coffee-500 mb-1">
                                   Duración (Días)
                                 </label>
                                 <input
@@ -1096,20 +1158,20 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                                     const val = parseInt(e.target.value);
                                     handleUpdateMedItem(idx, { duracionDias: isNaN(val) ? 1 : Math.max(1, val) });
                                   }}
-                                  className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-mono font-bold"
+                                  className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-mono font-bold"
                                   required
                                 />
                               </div>
 
                               <div>
-                                <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                                <label className="block text-[11px] font-semibold text-coffee-500 mb-1">
                                   Fecha de Término
                                 </label>
                                 <input
                                   type="date"
                                   value={medItem.fechaFin || calculateTreatmentEndDate(medItem.fechaInicio, medItem.duracionDias || 7)}
                                   onChange={(e) => handleUpdateMedItem(idx, { fechaFin: e.target.value })}
-                                  className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-mono"
+                                  className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-mono"
                                   required
                                 />
                               </div>
@@ -1117,7 +1179,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
 
                             {/* Quick Presets for Treatment Duration */}
                             <div>
-                              <span className="text-[10px] text-slate-400 block mb-1.5">
+                              <span className="text-[10px] text-coffee-500 block mb-1.5">
                                 Presets comunes de tratamiento (antibióticos, analgésicos, etc.):
                               </span>
                               <div className="flex flex-wrap items-center gap-1.5">
@@ -1136,8 +1198,8 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                                     onClick={() => handleUpdateMedItem(idx, { duracionDias: preset.days })}
                                     className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors ${
                                       medItem.duracionDias === preset.days
-                                        ? 'bg-emerald-500 text-slate-950 font-bold'
-                                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                                        ? 'bg-terracotta-500 text-white font-bold'
+                                        : 'bg-cream-200 hover:bg-coffee-200 text-coffee-600'
                                     }`}
                                   >
                                     {preset.label}
@@ -1147,31 +1209,31 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                             </div>
 
                             {/* Live calculation banner */}
-                            <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs text-emerald-300 space-y-1">
+                            <div className="p-3 rounded-xl bg-terracotta-100/30 border border-terracotta-500/30 text-xs text-terracotta-800 space-y-1">
                               <div className="flex items-center justify-between font-bold">
                                 <span>📅 Inicia: {medItem.fechaInicio}</span>
                                 <span>🏁 Concluye: {medItem.fechaFin || calculateTreatmentEndDate(medItem.fechaInicio, medItem.duracionDias || 7)}</span>
                               </div>
-                              <p className="text-[11px] text-slate-300">
-                                📊 Control de dosis: <strong className="text-white">{dailyDosesCount} toma{dailyDosesCount !== 1 ? 's' : ''}/día</strong> durante <strong className="text-white">{medItem.duracionDias || 7} días</strong> = <strong className="text-emerald-400 font-mono">{totalEstimatedDoses} dosis en total</strong> hasta concluir el tratamiento.
+                              <p className="text-[11px] text-coffee-600">
+                                📊 Control de dosis: <strong className="text-coffee-900">{dailyDosesCount} toma{dailyDosesCount !== 1 ? 's' : ''}/día</strong> durante <strong className="text-coffee-900">{medItem.duracionDias || 7} días</strong> = <strong className="text-terracotta-400 font-mono">{totalEstimatedDoses} dosis en total</strong> hasta concluir el tratamiento.
                               </p>
                             </div>
                           </div>
                         ) : (
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                              <label className="block text-[11px] font-semibold text-coffee-500 mb-1">
                                 Fecha de Inicio
                               </label>
                               <input
                                 type="date"
                                 value={medItem.fechaInicio}
                                 onChange={(e) => handleUpdateMedItem(idx, { fechaInicio: e.target.value })}
-                                className="w-full sm:w-1/2 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-mono"
+                                className="w-full sm:w-1/2 px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-mono"
                                 required
                               />
                             </div>
-                            <div className="p-3 rounded-xl bg-blue-950/30 border border-blue-500/30 text-xs text-blue-300">
+                            <div className="p-3 rounded-xl bg-blue-100 border border-blue-500/30 text-xs text-blue-800">
                               ♾️ Este medicamento está configurado como <strong>Tratamiento Continuo</strong> (sin fecha de término). Se programarán las {dailyDosesCount} tomas diarias de forma indefinida en el calendario del paciente.
                             </div>
                           </div>
@@ -1180,7 +1242,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
 
                       {/* Indications */}
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                        <label className="block text-[11px] font-semibold text-coffee-500 mb-1">
                           Indicaciones Especiales de Administración
                         </label>
                         <input
@@ -1188,7 +1250,7 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                           value={medItem.indicaciones}
                           onChange={(e) => handleUpdateMedItem(idx, { indicaciones: e.target.value })}
                           placeholder="Ej. Tomar con abundante agua, con alimentos, 30 min antes del desayuno..."
-                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs"
+                          className="w-full px-3 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs"
                         />
                       </div>
                     </div>
@@ -1198,8 +1260,8 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
 
               {/* Attachment link */}
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-                  <Paperclip className="w-3.5 h-3.5 text-slate-400" />
+                <label className="block text-xs font-semibold text-coffee-600 mb-1 flex items-center gap-1.5">
+                  <Paperclip className="w-3.5 h-3.5 text-coffee-500" />
                   Foto o Escaneo de Receta Física (enlace, opcional)
                 </label>
                 <input
@@ -1207,23 +1269,23 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
                   value={archivoAdjuntoUrl}
                   onChange={(e) => setArchivoAdjuntoUrl(e.target.value)}
                   placeholder="https://..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs font-mono"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-cream-200">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-coffee-500 hover:text-coffee-900"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition-colors shadow-lg shadow-emerald-500/20"
+                  className="px-5 py-2.5 rounded-xl bg-terracotta-500 hover:bg-terracotta-400 text-white text-xs font-black transition-colors shadow-lg shadow-terracotta-500/20"
                 >
-                  Guardar y Programar Receta
+                  {editingId ? 'Guardar Cambios' : 'Guardar y Programar Receta'}
                 </button>
               </div>
             </form>
@@ -1234,17 +1296,17 @@ export const PrescriptionsManagement: React.FC<PrescriptionsManagementProps> = (
       {/* Attachment Viewer Modal */}
       {viewAttachmentUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-4 space-y-4">
+          <div className="bg-cream-100 border border-cream-200 rounded-3xl max-w-2xl w-full p-4 space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <Paperclip className="w-4 h-4 text-emerald-400" />
+              <h4 className="text-sm font-bold text-coffee-900 flex items-center gap-2">
+                <Paperclip className="w-4 h-4 text-terracotta-400" />
                 Receta Médica Adjunta
               </h4>
-              <button onClick={() => setViewAttachmentUrl(null)} className="p-1 text-slate-400 hover:text-white">
+              <button onClick={() => setViewAttachmentUrl(null)} className="p-1 text-coffee-500 hover:text-coffee-900">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="rounded-2xl overflow-hidden border border-slate-800 bg-black max-h-[70vh] flex items-center justify-center">
+            <div className="rounded-2xl overflow-hidden border border-cream-200 bg-black max-h-[70vh] flex items-center justify-center">
               <img
                 src={viewAttachmentUrl}
                 alt="Receta adjunta"

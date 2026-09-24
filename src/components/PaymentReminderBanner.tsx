@@ -33,12 +33,12 @@ export const PaymentReminderBanner: React.FC = () => {
     <div
       role="status"
       className={`mx-auto max-w-6xl mt-3 px-4 py-3 rounded-2xl border flex flex-col gap-3 ${
-        vencido ? 'bg-amber-950/40 border-amber-500/40' : 'bg-sky-950/40 border-sky-500/30'
+        vencido ? 'bg-amber-100 border-amber-500/40' : 'bg-sky-100 border-sky-500/30'
       }`}
     >
       <div className="flex items-start gap-3">
-        <CalendarClock className={`w-5 h-5 mt-0.5 shrink-0 ${vencido ? 'text-amber-300' : 'text-sky-300'}`} />
-        <p className="text-sm text-slate-100 flex-1">{mensaje}</p>
+        <CalendarClock className={`w-5 h-5 mt-0.5 shrink-0 ${vencido ? 'text-amber-700' : 'text-sky-700'}`} />
+        <p className="text-sm text-coffee-800 flex-1">{mensaje}</p>
         <button
           type="button"
           aria-label="Recordar mañana"
@@ -47,7 +47,7 @@ export const PaymentReminderBanner: React.FC = () => {
             postponeReminder(1);
             refresh();
           }}
-          className="p-1 text-slate-400 hover:text-white"
+          className="p-1 text-coffee-500 hover:text-coffee-900"
         >
           <X className="w-4 h-4" />
         </button>
@@ -58,7 +58,7 @@ export const PaymentReminderBanner: React.FC = () => {
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="Tu nombre o el de tu clínica (para avisarte por WhatsApp)"
-          className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white placeholder:text-slate-500"
+          className="w-full rounded-xl bg-cream-100 border border-coffee-200 px-3 py-2 text-sm text-coffee-900 placeholder:text-coffee-400"
         />
       )}
 
@@ -69,7 +69,7 @@ export const PaymentReminderBanner: React.FC = () => {
             saveNameIfNeeded();
             await sendRenewalRequest();
           }}
-          className="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5"
+          className="px-3 py-2 rounded-xl bg-terracotta-500 hover:bg-terracotta-400 text-white font-bold text-xs flex items-center gap-1.5"
         >
           <MessageCircle className="w-4 h-4" />
           Avisar por WhatsApp
@@ -82,9 +82,9 @@ export const PaymentReminderBanner: React.FC = () => {
             markAsPaid();
             refresh();
           }}
-          className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold text-xs border border-slate-600 flex items-center gap-1.5"
+          className="px-3 py-2 rounded-xl bg-cream-200 hover:bg-coffee-200 text-coffee-800 font-semibold text-xs border border-coffee-300 flex items-center gap-1.5"
         >
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <CheckCircle2 className="w-4 h-4 text-terracotta-400" />
           Ya pagué
         </button>
         <button
@@ -93,7 +93,7 @@ export const PaymentReminderBanner: React.FC = () => {
             postponeReminder(1);
             refresh();
           }}
-          className="px-3 py-2 rounded-xl text-slate-300 hover:text-white text-xs"
+          className="px-3 py-2 rounded-xl text-coffee-600 hover:text-coffee-900 text-xs"
         >
           Recordar mañana
         </button>

@@ -145,13 +145,13 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
       <div className="relative w-full" ref={dropdownRef}>
         {label && (
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-[11px] font-semibold text-slate-400">
+            <label className="block text-[11px] font-semibold text-coffee-500">
               {label}
             </label>
             <button
               type="button"
               onClick={() => handleOpenQuickAdd(searchTerm)}
-              className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 hover:underline transition-colors"
+              className="text-[11px] font-bold text-terracotta-400 hover:text-terracotta-700 flex items-center gap-1 hover:underline transition-colors"
             >
               <Plus className="w-3 h-3 stroke-[3]" />
               <span>+ Nuevo Medicamento</span>
@@ -164,67 +164,67 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
           type="button"
           disabled={disabled}
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full text-left px-3 py-2 rounded-xl bg-slate-800 border transition-all flex items-center justify-between gap-2 ${
+          className={`w-full text-left px-3 py-2 rounded-xl bg-cream-200 border transition-all flex items-center justify-between gap-2 ${
             isOpen
-              ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-slate-800/90'
+              ? 'border-terracotta-500 ring-2 ring-terracotta-500/20 bg-cream-200/90'
               : error
-              ? 'border-rose-500 bg-rose-950/20'
-              : 'border-slate-700 hover:border-slate-600'
+              ? 'border-rose-500 bg-rose-100'
+              : 'border-coffee-200 hover:border-coffee-300'
           } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+            <div className="p-1.5 rounded-lg bg-terracotta-500/10 text-terracotta-400 border border-terracotta-500/20 shrink-0">
               <Pill className="w-3.5 h-3.5" />
             </div>
             {selectedMed ? (
               <div className="truncate">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-white truncate">
+                  <span className="text-xs font-bold text-coffee-900 truncate">
                     {selectedMed.nombreComercial}
                   </span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-700 text-slate-300 font-mono shrink-0">
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-coffee-200 text-coffee-600 font-mono shrink-0">
                     {selectedMed.concentracion}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 truncate">
+                <p className="text-[11px] text-coffee-500 truncate">
                   {selectedMed.sustanciaActiva} • {selectedMed.presentacion}
                 </p>
               </div>
             ) : (
-              <span className="text-xs text-slate-500 italic">
+              <span className="text-xs text-coffee-400 italic">
                 Seleccionar o buscar medicamento...
               </span>
             )}
           </div>
 
           <ChevronDown
-            className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-              isOpen ? 'rotate-180 text-emerald-400' : ''
+            className={`w-4 h-4 text-coffee-500 shrink-0 transition-transform duration-200 ${
+              isOpen ? 'rotate-180 text-terracotta-400' : ''
             }`}
           />
         </button>
 
         {/* Dropdown Panel */}
         {isOpen && (
-          <div className="absolute z-50 left-0 right-0 mt-1.5 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[400px] sm:max-h-[440px] animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="absolute z-50 left-0 right-0 mt-1.5 bg-cream-100 border border-coffee-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[400px] sm:max-h-[440px] animate-in fade-in slide-in-from-top-2 duration-150">
             {/* Search Box Header */}
-            <div className="p-2.5 bg-slate-900/95 border-b border-slate-800 space-y-2">
+            <div className="p-2.5 bg-cream-100/95 border-b border-cream-200 space-y-2">
               <div className="relative flex items-center gap-2">
                 <div className="relative flex-1">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Search className="w-4 h-4 text-coffee-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     ref={searchInputRef}
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar por nombre, sustancia o presentación..."
-                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-cream-200 border border-coffee-200 text-coffee-900 text-xs placeholder:text-coffee-400 focus:outline-none focus:border-terracotta-500 transition-colors"
                   />
                   {searchTerm && (
                     <button
                       type="button"
                       onClick={() => setSearchTerm('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 rounded-full"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-coffee-500 hover:text-coffee-900 p-0.5 rounded-full"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -234,7 +234,7 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                 <button
                   type="button"
                   onClick={() => handleOpenQuickAdd(searchTerm)}
-                  className="px-2.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-colors flex items-center gap-1 shrink-0"
+                  className="px-2.5 py-2 rounded-xl bg-terracotta-500/15 hover:bg-terracotta-500/25 text-terracotta-800 border border-terracotta-500/30 text-xs font-bold transition-colors flex items-center gap-1 shrink-0"
                   title="Dar de alta nuevo medicamento al instante"
                 >
                   <Plus className="w-3.5 h-3.5 stroke-[3]" />
@@ -249,8 +249,8 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                   onClick={() => setSelectedLetter(null)}
                   className={`px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 transition-colors ${
                     selectedLetter === null
-                      ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/20'
-                      : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                      ? 'bg-terracotta-500 text-white shadow-sm shadow-terracotta-500/20'
+                      : 'bg-cream-200 text-coffee-500 hover:text-coffee-900 hover:bg-coffee-200'
                   }`}
                 >
                   Todos (A-Z)
@@ -266,10 +266,10 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                       onClick={() => setSelectedLetter(isCurrent ? null : char)}
                       className={`w-6 h-6 rounded-md text-[10px] font-bold flex items-center justify-center shrink-0 transition-colors ${
                         isCurrent
-                          ? 'bg-emerald-500 text-slate-950 font-black'
+                          ? 'bg-terracotta-500 text-white font-black'
                           : hasMeds
-                          ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
-                          : 'bg-slate-800/30 text-slate-600 cursor-not-allowed opacity-40'
+                          ? 'bg-cream-200 text-coffee-600 hover:bg-coffee-200 hover:text-coffee-900'
+                          : 'bg-cream-200/30 text-coffee-300 cursor-not-allowed opacity-40'
                       }`}
                       title={hasMeds ? `Ver medicamentos con ${char}` : `Sin medicamentos con ${char}`}
                     >
@@ -281,7 +281,7 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
             </div>
 
             {/* Results Summary Bar */}
-            <div className="px-3 py-1.5 bg-slate-950/70 border-b border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+            <div className="px-3 py-1.5 bg-cream-50/70 border-b border-cream-200/80 flex items-center justify-between text-[10px] text-coffee-500">
               <span>
                 Orden A-Z • {filteredMedicines.length} de {sortedMedicines.length} medicamentos
               </span>
@@ -289,7 +289,7 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                 <button
                   type="button"
                   onClick={handleClearFilters}
-                  className="text-emerald-400 hover:underline flex items-center gap-1 font-semibold"
+                  className="text-terracotta-400 hover:underline flex items-center gap-1 font-semibold"
                 >
                   Limpiar filtros
                 </button>
@@ -304,10 +304,10 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                     <Pill className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-white">
+                    <p className="text-xs font-bold text-coffee-900">
                       ¿No encuentras el medicamento?
                     </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
+                    <p className="text-[11px] text-coffee-500 mt-0.5">
                       {searchTerm
                         ? `"${searchTerm}" no existe aún en el catálogo.`
                         : 'No hay medicamentos que coincidan con el filtro.'}
@@ -318,7 +318,7 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                   <button
                     type="button"
                     onClick={() => handleOpenQuickAdd(searchTerm)}
-                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all"
+                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-terracotta-500 to-terracotta-600 hover:from-terracotta-400 hover:to-terracotta-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-terracotta-500/20 transition-all"
                   >
                     <PlusCircle className="w-4 h-4 stroke-[2.5]" />
                     <span>
@@ -329,7 +329,7 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                   <button
                     type="button"
                     onClick={handleClearFilters}
-                    className="text-[11px] text-slate-400 hover:text-slate-200 underline"
+                    className="text-[11px] text-coffee-500 hover:text-coffee-700 underline"
                   >
                     Restablecer búsqueda
                   </button>
@@ -341,13 +341,13 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                     <button
                       type="button"
                       onClick={() => handleOpenQuickAdd(searchTerm)}
-                      className="w-full p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-between transition-colors"
+                      className="w-full p-2 rounded-xl bg-terracotta-500/10 hover:bg-terracotta-500/20 border border-terracotta-500/30 text-terracotta-800 text-xs font-bold flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-2 truncate">
                         <Plus className="w-3.5 h-3.5 stroke-[3]" />
                         <span>¿No está en la lista? Dar de alta <strong>"{searchTerm}"</strong></span>
                       </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200 shrink-0">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-terracotta-500/20 text-terracotta-200 shrink-0">
                         Crear ahora
                       </span>
                     </button>
@@ -357,8 +357,8 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                     .sort((a, b) => a.localeCompare(b, 'es'))
                     .map((letter) => (
                       <div key={letter} className="space-y-1">
-                        <div className="sticky top-0 z-10 px-2 py-0.5 bg-slate-900/90 backdrop-blur-sm text-[10px] font-black text-emerald-400 tracking-wider flex items-center gap-1.5 border-b border-slate-800/60">
-                          <span className="w-4 h-4 rounded bg-emerald-500/20 text-emerald-300 flex items-center justify-center">
+                        <div className="sticky top-0 z-10 px-2 py-0.5 bg-cream-100/90 backdrop-blur-sm text-[10px] font-black text-terracotta-400 tracking-wider flex items-center gap-1.5 border-b border-cream-200/60">
+                          <span className="w-4 h-4 rounded bg-terracotta-500/20 text-terracotta-800 flex items-center justify-center">
                             {letter}
                           </span>
                           <span>({groupedMedicines[letter].length})</span>
@@ -375,20 +375,20 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                               onClick={() => handleSelect(med.id)}
                               className={`w-full text-left p-2.5 rounded-xl transition-all flex items-center justify-between gap-3 ${
                                 isSelected
-                                  ? 'bg-emerald-500/15 border border-emerald-500/40 text-white'
-                                  : 'hover:bg-slate-800/80 text-slate-200 border border-transparent'
+                                  ? 'bg-terracotta-500/15 border border-terracotta-500/40 text-coffee-900'
+                                  : 'hover:bg-cream-200/80 text-coffee-700 border border-transparent'
                               }`}
                             >
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs font-bold text-white truncate">
+                                  <span className="text-xs font-bold text-coffee-900 truncate">
                                     {med.nombreComercial}
                                   </span>
-                                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-emerald-300 font-mono font-medium border border-slate-700">
+                                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-cream-200 text-terracotta-700 font-mono font-medium border border-coffee-200">
                                     {med.concentracion}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5 truncate">
+                                <div className="flex items-center gap-2 text-[11px] text-coffee-500 mt-0.5 truncate">
                                   <span className="truncate">{med.sustanciaActiva}</span>
                                   <span>•</span>
                                   <span className="capitalize">{med.presentacion}</span>
@@ -400,8 +400,8 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                                 <span
                                   className={`text-[10px] px-2 py-0.5 rounded-full font-mono flex items-center gap-1 ${
                                     isLowStock
-                                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                      : 'bg-slate-800 text-slate-400'
+                                      ? 'bg-amber-500/20 text-amber-800 border border-amber-500/30'
+                                      : 'bg-cream-200 text-coffee-500'
                                   }`}
                                 >
                                   {isLowStock && <AlertCircle className="w-2.5 h-2.5 text-amber-400" />}
@@ -409,7 +409,7 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
                                 </span>
 
                                 {isSelected && (
-                                  <div className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center">
+                                  <div className="w-5 h-5 rounded-full bg-terracotta-500 text-white flex items-center justify-center">
                                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                                   </div>
                                 )}
@@ -424,14 +424,14 @@ export const MedicineSearchSelect: React.FC<MedicineSearchSelectProps> = ({
             </div>
 
             {/* Bottom Quick Action Footer */}
-            <div className="p-2 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
-              <span className="text-[10px] text-slate-400">
+            <div className="p-2 bg-cream-50 border-t border-cream-200 flex items-center justify-between">
+              <span className="text-[10px] text-coffee-500">
                 ¿Falta algún medicamento en el sistema?
               </span>
               <button
                 type="button"
                 onClick={() => handleOpenQuickAdd(searchTerm)}
-                className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[11px] font-bold transition-colors flex items-center gap-1 border border-emerald-500/30"
+                className="px-2.5 py-1 rounded-lg bg-terracotta-500/20 hover:bg-terracotta-500/30 text-terracotta-800 text-[11px] font-bold transition-colors flex items-center gap-1 border border-terracotta-500/30"
               >
                 <Plus className="w-3 h-3 stroke-[3]" />
                 <span>+ Agregar al catálogo</span>

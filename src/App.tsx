@@ -145,7 +145,7 @@ export default function App() {
   const lowStockCount = medicines.filter(m => m.activo && hasLowStock(m)).length;
 
   return (
-    <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950 ${
+    <div className={`min-h-screen bg-cream-50 text-coffee-800 flex flex-col selection:bg-terracotta-500 selection:text-white ${
       accessibilityMode ? 'accessibility-mode' : ''
     }`}>
       {/* Top Main Navigation Header */}
@@ -239,9 +239,9 @@ export default function App() {
           </>
         ) : (
           <div className="space-y-6">
-            <div className="rounded-3xl border border-emerald-500/30 bg-emerald-950/20 p-6 text-center space-y-3">
-              <h2 className="text-xl font-bold text-white">Bienvenido a MediControl</h2>
-              <p className="text-sm text-slate-300 max-w-xl mx-auto">
+            <div className="rounded-3xl border border-terracotta-500/30 bg-terracotta-100/20 p-6 text-center space-y-3">
+              <h2 className="text-xl font-bold text-coffee-900">Bienvenido a MediControl</h2>
+              <p className="text-sm text-coffee-600 max-w-xl mx-auto">
                 Empieza dando de alta a tu primer paciente. Después registra su receta y la app te avisará
                 a la hora de cada dosis, incluso con la aplicación cerrada.
               </p>
@@ -251,7 +251,7 @@ export default function App() {
                   storageService.loadDemoData();
                   refreshAllData();
                 }}
-                className="text-xs text-slate-400 hover:text-slate-200 underline"
+                className="text-xs text-coffee-500 hover:text-coffee-700 underline"
               >
                 Prefiero ver primero una demostración con pacientes de ejemplo
               </button>

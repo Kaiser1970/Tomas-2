@@ -109,19 +109,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
+      <div className="bg-cream-100 border border-cream-200 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/90">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-cream-200 bg-cream-100/90">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700">
+            <div className="p-2 rounded-xl bg-cream-200 text-coffee-600 border border-coffee-200">
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Configuración del Sistema</h3>
-              <p className="text-xs text-slate-400">Copias de seguridad, tonos de alerta y datos</p>
+              <h3 className="text-base font-bold text-coffee-900">Configuración del Sistema</h3>
+              <p className="text-xs text-coffee-500">Copias de seguridad, tonos de alerta y datos</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white rounded-lg">
+          <button onClick={onClose} className="p-1.5 text-coffee-500 hover:text-coffee-900 rounded-lg">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -129,7 +129,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
           {restoreStatus && (
             <div className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
-              restoreStatus.startsWith('¡') ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/30' : 'bg-rose-950/40 text-rose-300 border border-rose-500/30'
+              restoreStatus.startsWith('¡') ? 'bg-terracotta-100/40 text-terracotta-700 border border-terracotta-500/30' : 'bg-rose-100 text-rose-700 border border-rose-500/30'
             }`}>
               <CheckCircle2 className="w-4 h-4" />
               <span>{restoreStatus}</span>
@@ -138,20 +138,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <ReminderSettingsCard />
 
-          <div className="pt-3 border-t border-slate-800">
+          <div className="pt-3 border-t border-cream-200">
             <SubscriptionCard />
           </div>
 
           {/* Mobile Installation Action */}
           {onOpenInstall && (
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/50 via-teal-950/30 to-slate-900 border border-emerald-500/40 flex items-center justify-between gap-3 shadow-md">
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-terracotta-100/50 via-teal-950/30 to-cream-100 border border-terracotta-500/40 flex items-center justify-between gap-3 shadow-md">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold shrink-0">
+                <div className="p-2.5 rounded-xl bg-terracotta-500 text-white font-bold shrink-0">
                   <Smartphone className="w-5 h-5" />
                 </div>
                 <div>
-                  <strong className="text-xs font-bold text-white block">Instalar en otros Celulares</strong>
-                  <p className="text-[11px] text-slate-300">Genera código QR o enlace para Android e iPhone</p>
+                  <strong className="text-xs font-bold text-coffee-900 block">Instalar en otros Celulares</strong>
+                  <p className="text-[11px] text-coffee-600">Genera código QR o enlace para Android e iPhone</p>
                 </div>
               </div>
               <button
@@ -160,7 +160,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   onClose();
                   onOpenInstall();
                 }}
-                className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shrink-0 transition-colors shadow-sm"
+                className="px-3.5 py-2 rounded-xl bg-terracotta-500 hover:bg-terracotta-400 text-white font-bold text-xs shrink-0 transition-colors shadow-sm"
               >
                 Abrir QR
               </button>
@@ -169,8 +169,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Backup & Restore */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <FileJson className="w-4 h-4 text-emerald-400" />
+            <h4 className="text-xs font-bold text-coffee-500 uppercase tracking-wider flex items-center gap-1.5">
+              <FileJson className="w-4 h-4 text-terracotta-400" />
               Respaldo y Portabilidad de Datos
             </h4>
 
@@ -178,13 +178,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <button
                 type="button"
                 onClick={handleExportBackup}
-                className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-slate-200 transition-colors text-xs font-semibold"
+                className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-cream-200/60 hover:bg-cream-200 border border-coffee-200 text-coffee-700 transition-colors text-xs font-semibold"
               >
-                <Download className="w-5 h-5 text-emerald-400" />
+                <Download className="w-5 h-5 text-terracotta-400" />
                 <span>Exportar JSON</span>
               </button>
 
-              <label className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-slate-200 transition-colors text-xs font-semibold cursor-pointer">
+              <label className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-cream-200/60 hover:bg-cream-200 border border-coffee-200 text-coffee-700 transition-colors text-xs font-semibold cursor-pointer">
                 <Upload className="w-5 h-5 text-blue-400" />
                 <span>Importar JSON</span>
                 <input
@@ -198,20 +198,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* Final Application Specification Prompt Download */}
             {!isNativeApp() && (
-            <div className="p-3.5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 flex items-center justify-between gap-3">
+            <div className="p-3.5 rounded-2xl bg-terracotta-100/20 border border-terracotta-500/30 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <div className="p-2 rounded-xl bg-terracotta-500/10 text-terracotta-400 border border-terracotta-500/20">
                   <FileText className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-white block">Prompt Final del Sistema (.txt)</span>
-                  <p className="text-[11px] text-slate-400">Especificación técnica y funcional completa para desarrollo</p>
+                  <span className="text-xs font-bold text-coffee-900 block">Prompt Final del Sistema (.txt)</span>
+                  <p className="text-[11px] text-coffee-500">Especificación técnica y funcional completa para desarrollo</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleDownloadPrompt}
-                className="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shrink-0 transition-colors shadow-lg shadow-emerald-950/40"
+                className="px-3 py-2 rounded-xl bg-terracotta-500 hover:bg-terracotta-400 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 transition-colors shadow-lg shadow-terracotta-100/40"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Descargar</span>
@@ -219,15 +219,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
             )}
             
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-coffee-400">
               Guarda un archivo de respaldo con pacientes, recetas, historial de tomas y catálogo de medicamentos.
             </p>
           </div>
 
           {/* Audio Synthesizer Test */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Volume2 className="w-4 h-4 text-emerald-400" />
+            <h4 className="text-xs font-bold text-coffee-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Volume2 className="w-4 h-4 text-terracotta-400" />
               Prueba de Tonos de Notificación
             </h4>
 
@@ -237,9 +237,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   key={tone.id}
                   type="button"
                   onClick={() => audioService.playTone(tone.id)}
-                  className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 text-xs transition-colors text-left"
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-cream-200 hover:bg-coffee-200 text-coffee-600 hover:text-coffee-900 border border-coffee-200/80 text-xs transition-colors text-left"
                 >
-                  <Volume2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <Volume2 className="w-3.5 h-3.5 text-terracotta-400 shrink-0" />
                   <span className="truncate">{tone.name.split('(')[0]}</span>
                 </button>
               ))}
@@ -247,13 +247,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           {/* Reset Factory Data */}
-          <div className="pt-3 border-t border-slate-800 space-y-2">
+          <div className="pt-3 border-t border-cream-200 space-y-2">
             <h4 className="text-xs font-bold text-rose-400 flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4" />
               Datos de Demostración
             </h4>
             <div className="flex items-center justify-between">
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-coffee-500">
                 Reemplaza tus datos por pacientes, recetas y tomas de ejemplo. Haz un respaldo antes.
               </p>
               <button

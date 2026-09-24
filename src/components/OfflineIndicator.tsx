@@ -30,8 +30,8 @@ export const OfflineIndicator: React.FC = () => {
 
   if (showReconnected) {
     return (
-      <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 rounded-2xl bg-emerald-600/90 backdrop-blur-md px-3.5 py-2 text-xs font-semibold text-white shadow-xl border border-emerald-400/30 animate-in fade-in slide-in-from-bottom-2">
-        <Wifi className="w-4 h-4 text-emerald-200" />
+      <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 rounded-2xl bg-terracotta-600/90 backdrop-blur-md px-3.5 py-2 text-xs font-semibold text-white shadow-xl border border-terracotta-400/30 animate-in fade-in slide-in-from-bottom-2">
+        <Wifi className="w-4 h-4 text-terracotta-200" />
         <span>Conexión restablecida. Modo en línea activo.</span>
       </div>
     );

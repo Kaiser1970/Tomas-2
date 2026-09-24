@@ -56,21 +56,21 @@ export const PromptModal: React.FC<PromptModalProps> = ({ isOpen, onClose }) => 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-cream-100 border border-cream-200 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/90">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-cream-200 bg-cream-100/90">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <div className="p-2 rounded-xl bg-terracotta-500/10 text-terracotta-400 border border-terracotta-500/20">
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Prompt Técnico del Sistema (.txt)</h3>
-              <p className="text-xs text-slate-400">Especificación clínica, arquitectura, reglas de negocio y esquemas</p>
+              <h3 className="text-base font-bold text-coffee-900">Prompt Técnico del Sistema (.txt)</h3>
+              <p className="text-xs text-coffee-500">Especificación clínica, arquitectura, reglas de negocio y esquemas</p>
             </div>
           </div>
           <button 
             onClick={onClose} 
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-coffee-500 hover:text-coffee-900 hover:bg-cream-200 transition-colors cursor-pointer"
             title="Cerrar ventana"
           >
             <X className="w-5 h-5" />
@@ -78,16 +78,16 @@ export const PromptModal: React.FC<PromptModalProps> = ({ isOpen, onClose }) => 
         </div>
 
         {/* Tip banner for iframes */}
-        <div className="px-6 py-2.5 bg-emerald-950/40 border-b border-emerald-500/20 flex items-center justify-between gap-3 text-xs">
-          <span className="text-emerald-300 flex items-center gap-1.5">
-            <AlertCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="px-6 py-2.5 bg-terracotta-100/40 border-b border-terracotta-500/20 flex items-center justify-between gap-3 text-xs">
+          <span className="text-terracotta-700 flex items-center gap-1.5">
+            <AlertCircle className="w-4 h-4 text-terracotta-400 shrink-0" />
             <span>Si el navegador bloquea la descarga por estar en un visor, usa <strong>"Copiar Todo"</strong> o <strong>"Abrir en pestaña"</strong>.</span>
           </span>
           <a
             href="/prompt_final_aplicacion.txt"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-semibold text-[11px] shrink-0 transition-colors"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-terracotta-500/20 hover:bg-terracotta-500/30 text-terracotta-800 font-semibold text-[11px] shrink-0 transition-colors"
           >
             <ExternalLink className="w-3 h-3" />
             <span>Abrir archivo</span>
@@ -95,15 +95,15 @@ export const PromptModal: React.FC<PromptModalProps> = ({ isOpen, onClose }) => 
         </div>
 
         {/* Prompt Content Preview */}
-        <div className="p-5 flex-1 overflow-y-auto bg-slate-950/80">
-          <pre className="text-xs font-mono text-slate-300 whitespace-pre-wrap leading-relaxed select-all">
+        <div className="p-5 flex-1 overflow-y-auto bg-cream-50/80">
+          <pre className="text-xs font-mono text-coffee-600 whitespace-pre-wrap leading-relaxed select-all">
             {PROMPT_FINAL_TEXT}
           </pre>
         </div>
 
         {/* Actions Footer */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-slate-800 bg-slate-900">
-          <span className="text-xs text-slate-400 font-medium">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-cream-200 bg-cream-100">
+          <span className="text-xs text-coffee-500 font-medium">
             235 líneas • Archivo de texto plano UTF-8
           </span>
 
@@ -114,8 +114,8 @@ export const PromptModal: React.FC<PromptModalProps> = ({ isOpen, onClose }) => 
               onClick={handleCopy}
               className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                 copied 
-                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20' 
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                  ? 'bg-terracotta-500 text-white shadow-md shadow-terracotta-500/20' 
+                  : 'bg-cream-200 hover:bg-coffee-200 text-coffee-700 border border-coffee-200'
               }`}
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -126,7 +126,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({ isOpen, onClose }) => 
             <button
               type="button"
               onClick={handleDownload}
-              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-emerald-500/20"
+              className="px-4 py-2 rounded-xl bg-terracotta-500 hover:bg-terracotta-400 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-terracotta-500/20"
             >
               <Download className="w-4 h-4" />
               <span>{downloadSuccess ? '¡Descargado!' : 'Descargar .TXT'}</span>
